@@ -27,6 +27,53 @@
   @keyframes pb-avatar-pop{ 0%{transform:scale(.5) rotate(-8deg);opacity:0} 60%{transform:scale(1.08) rotate(3deg)} 100%{transform:scale(1) rotate(0);opacity:1} }
   @keyframes pb-glow-pulse{ 0%,100%{box-shadow:0 0 0 0 rgba(232,201,122,.0)} 50%{box-shadow:0 0 0 6px rgba(232,201,122,.16)} }
   @keyframes pb-spin      { from{transform:rotate(0)} to{transform:rotate(360deg)} }
+  @keyframes pb-shine     { 0%{transform:translateX(-120%) skewX(-12deg);} 100%{transform:translateX(220%) skewX(-12deg);} }
+  @keyframes pb-otp-pop   { from{opacity:0;transform:translateY(8px) scale(.85)} to{opacity:1;transform:none} }
+  @keyframes pb-otp-fill  { 0%{transform:scale(1)} 40%{transform:scale(1.12)} 100%{transform:scale(1)} }
+  @keyframes pb-ring-draw { from{stroke-dashoffset:151} to{stroke-dashoffset:0} }
+  @keyframes pb-check-draw{ from{stroke-dashoffset:36} to{stroke-dashoffset:0} }
+  @keyframes pb-countup-glow{ 0%{text-shadow:0 0 0 rgba(232,201,122,0)} 50%{text-shadow:0 0 14px rgba(232,201,122,.55)} 100%{text-shadow:0 0 0 rgba(232,201,122,0)} }
+
+  .hdr{ overflow:hidden; }
+  .hdr::after{
+    content:''; position:absolute; top:0; left:0; width:60%; height:100%;
+    background:linear-gradient(100deg, transparent, rgba(232,201,122,.18), transparent);
+    animation: pb-shine 1.8s ease-out .3s 1;
+    pointer-events:none;
+  }
+
+  .otp-row{ display:flex; gap:8px; justify-content:center; margin:0 auto; max-width:280px; }
+  .otp-box{
+    width:42px; height:52px; text-align:center; font-size:22px; font-weight:800;
+    border:2px solid var(--line); border-radius:10px; outline:none; color:var(--ink);
+    font-family:monospace; background:#fff;
+    transition: border-color .15s ease, box-shadow .15s ease, transform .15s ease;
+    animation: pb-otp-pop .35s cubic-bezier(.22,1,.36,1) both;
+  }
+  .otp-box:nth-child(1){animation-delay:.02s;} .otp-box:nth-child(2){animation-delay:.06s;}
+  .otp-box:nth-child(3){animation-delay:.10s;} .otp-box:nth-child(4){animation-delay:.14s;}
+  .otp-box:nth-child(5){animation-delay:.18s;} .otp-box:nth-child(6){animation-delay:.22s;}
+  .otp-box:focus{ border-color:var(--gold); box-shadow:0 0 0 4px rgba(201,168,76,.18); }
+  .otp-box.filled{ border-color:var(--gold-dk); background:#FFFBF0; animation: pb-otp-fill .22s ease; }
+  .otp-box.pb-shake{ animation: pb-shake .4s ease; border-color: var(--bad); background:#FFF5F4; }
+  .otp-box:disabled{ opacity:.55; }
+
+  .unlock-ring-wrap{ width:64px; height:64px; margin:0 auto 8px; position:relative; }
+  .unlock-ring-wrap svg{ width:64px; height:64px; transform:rotate(-90deg); }
+  .unlock-ring-wrap circle.bg{ fill:none; stroke:var(--line); stroke-width:5; }
+  .unlock-ring-wrap circle.fg{
+    fill:none; stroke:var(--ok); stroke-width:5; stroke-linecap:round;
+    stroke-dasharray:151; stroke-dashoffset:151;
+    animation: pb-ring-draw .5s ease forwards;
+  }
+  .unlock-ring-wrap path.chk{
+    fill:none; stroke:var(--ok); stroke-width:5; stroke-linecap:round; stroke-linejoin:round;
+    stroke-dasharray:36; stroke-dashoffset:36;
+    animation: pb-check-draw .3s ease .45s forwards;
+  }
+
+  .countup-val{ animation: pb-countup-glow 1s ease .55s; }
+
 
   .card{
     background:var(--cream); border-radius:18px; max-width:430px; width:100%;
@@ -123,7 +170,8 @@
   .no-data{padding:34px 20px;text-align:center;color:#888;}
   .warn-strip{background:#FFF8E1;border:1px solid #FCE38A;border-radius:8px;padding:9px 11px;font-size:10.5px;color:#8A6D00;margin-bottom:14px;line-height:1.5;animation: pb-sec-in .35s ease .04s both;}
   @media (prefers-reduced-motion: reduce){
-    .card,.body,.gate .icon,.pb-avatar,.summary,.pledge-card,.warn-strip,.lockout{ animation:none !important; }
+    .card,.body,.gate .icon,.pb-avatar,.summary,.pledge-card,.warn-strip,.lockout,
+    .hdr::after,.otp-box,.unlock-ring-wrap circle.fg,.unlock-ring-wrap path.chk,.countup-val{ animation:none !important; }
   }
 </style>
 </head>
@@ -226,6 +274,76 @@ function toggleLang() {
   else renderPassbook();
 }
 
+function otpBoxesHtml(n, locked) {
+  var boxes = '';
+  for (var i = 0; i < n; i++) {
+    boxes += '<input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" class="otp-box" id="otp-'+i+'" ' +
+      'data-idx="'+i+'" oninput="otpHandleInput(this)" onkeydown="otpHandleKeydown(event,this)" onpaste="otpHandlePaste(event,this)" ' +
+      (locked?'disabled':'') + '>';
+  }
+  return '<div class="otp-row">' + boxes + '</div>';
+}
+
+function otpLen() {
+  var n = String((PAYLOAD && PAYLOAD.sec) || '').trim().length;
+  return Math.max(4, Math.min(6, n || 4));
+}
+
+function otpHandleInput(el) {
+  var v = (el.value || '').replace(/\D/g,'').slice(0,1);
+  el.value = v;
+  el.classList.remove('pb-shake');
+  if (v) {
+    el.classList.add('filled');
+    try { if (navigator.vibrate) navigator.vibrate(8); } catch(e){}
+    var next = document.getElementById('otp-' + (parseInt(el.dataset.idx,10)+1));
+    if (next) next.focus(); else { el.blur(); maybeAutoUnlock(); }
+  } else {
+    el.classList.remove('filled');
+  }
+}
+
+function otpHandleKeydown(e, el) {
+  var idx = parseInt(el.dataset.idx,10);
+  if (e.key === 'Backspace' && !el.value) {
+    var prev = document.getElementById('otp-'+(idx-1));
+    if (prev) { prev.focus(); prev.value=''; prev.classList.remove('filled'); }
+  } else if (e.key === 'Enter') {
+    tryUnlock();
+  }
+}
+
+function otpHandlePaste(e, el) {
+  e.preventDefault();
+  var text = (e.clipboardData || window.clipboardData).getData('text') || '';
+  var digits = text.replace(/\D/g,'').split('');
+  var startIdx = parseInt(el.dataset.idx,10);
+  for (var i = 0; i < digits.length; i++) {
+    var box = document.getElementById('otp-'+(startIdx+i));
+    if (!box) break;
+    box.value = digits[i];
+    box.classList.add('filled');
+  }
+  var lastBox = document.getElementById('otp-'+Math.min(startIdx+digits.length, otpLen()-1));
+  if (lastBox) lastBox.focus();
+  maybeAutoUnlock();
+}
+
+function otpCollect() {
+  var n = otpLen(), out = '';
+  for (var i = 0; i < n; i++) {
+    var b = document.getElementById('otp-'+i);
+    out += b ? (b.value||'') : '';
+  }
+  return out;
+}
+
+function maybeAutoUnlock() {
+  var n = otpLen();
+  var val = otpCollect();
+  if (val.length === n) tryUnlock();
+}
+
 function renderGate() {
   var locked = Date.now() < LOCKED_UNTIL;
   var secsLeft = Math.ceil((LOCKED_UNTIL - Date.now())/1000);
@@ -239,16 +357,15 @@ function renderGate() {
         '<div class="icon">🔒</div>' +
         '<h2>' + ut('Enter your PIN to view your passbook', 'உங்கள் பாஸ்புக்கைப் பார்க்க PIN உள்ளிடவும்') + '</h2>' +
         '<p>' + ut('This is the PIN or last 4 digits of your ID proof given to you by the shop.', 'இது கடை வழங்கிய PIN அல்லது உங்கள் அடையாள எண்ணின் கடைசி 4 இலக்கங்கள்.') + '</p>' +
-        '<input type="text" inputmode="numeric" maxlength="6" class="pin-input" id="pin-field" placeholder="••••" ' + (locked?'disabled':'') + '>' +
-        '<br>' +
+        otpBoxesHtml(otpLen(), locked) +
         '<button class="unlock-btn" id="unlock-btn" onclick="tryUnlock()" ' + (locked?'disabled':'') + '>' + ut('Unlock', 'திற') + '</button>' +
         '<div class="err-msg" id="err-msg"></div>' +
       '</div>' +
       (locked ? '<div class="lockout" id="lock-msg">' + ut('Too many attempts. Try again in ', 'பல முயற்சிகள். மீண்டும் முயற்சிக்கவும்: ') + secsLeft + 's</div>' : '') +
       '<div class="footer-note">' + ut('Your details stay on this page only — nothing is sent anywhere.', 'உங்கள் தகவல்கள் இந்த பக்கத்தில் மட்டுமே உள்ளன — எங்கும் அனுப்பப்படாது.') + '</div>' +
     '</div>';
-  var f = document.getElementById('pin-field');
-  if (f) { f.focus(); f.onkeydown = function(e){ if (e.key === 'Enter') tryUnlock(); }; }
+  var f = document.getElementById('otp-0');
+  if (f) f.focus();
   if (locked) tickLockout();
 }
 
@@ -266,46 +383,72 @@ function tickLockout() {
 
 function tryUnlock() {
   if (Date.now() < LOCKED_UNTIL) return;
-  var val = (document.getElementById('pin-field').value || '').trim();
+  var val = otpCollect().trim();
   var expected = String(PAYLOAD.sec || '').trim();
   if (!val) return;
   if (expected && val === expected) {
     ATTEMPTS = 0;
-    var icon = document.querySelector('.gate .icon');
+    try { if (navigator.vibrate) navigator.vibrate([15,40,25]); } catch(e){}
+    var iconBox = document.querySelector('.gate .icon');
     var btn = document.getElementById('unlock-btn');
-    var field = document.getElementById('pin-field');
-    if (icon) { icon.textContent = '✅'; icon.classList.add('unlocking'); }
-    if (field) field.disabled = true;
-    if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spin">⏳</span>'; }
+    var boxes = document.querySelectorAll('.otp-box');
+    boxes.forEach(function(b){ b.disabled = true; });
+    if (btn) btn.disabled = true;
+    if (iconBox) {
+      iconBox.outerHTML = '<div class="unlock-ring-wrap">' +
+        '<svg viewBox="0 0 64 64"><circle class="bg" cx="32" cy="32" r="24"/><circle class="fg" cx="32" cy="32" r="24"/></svg>' +
+        '<svg viewBox="0 0 64 64" style="position:absolute;top:0;left:0;transform:none;"><path class="chk" d="M20 33 L29 41 L45 23"/></svg>' +
+      '</div>';
+    }
     var box = document.getElementById('pin-gate-box');
     setTimeout(function() {
       if (box) box.style.animation = 'pb-fade-out .2s ease forwards';
       setTimeout(renderPassbook, 180);
-    }, 320);
+    }, 700);
     return;
   }
   ATTEMPTS++;
+  try { if (navigator.vibrate) navigator.vibrate(60); } catch(e){}
   var errEl = document.getElementById('err-msg');
-  var field = document.getElementById('pin-field');
-  if (field) {
-    field.classList.remove('pb-shake');
-    // restart the animation even if triggered twice in a row
-    void field.offsetWidth;
-    field.classList.add('pb-shake');
-  }
+  var boxes = document.querySelectorAll('.otp-box');
+  boxes.forEach(function(b){
+    b.classList.remove('pb-shake');
+    void b.offsetWidth;
+    b.classList.add('pb-shake');
+  });
   if (ATTEMPTS >= MAX_ATTEMPTS) {
     LOCKED_UNTIL = Date.now() + LOCK_SECONDS*1000;
     setTimeout(renderGate, 280);
     return;
   }
   if (errEl) errEl.textContent = ut('Incorrect PIN. ', 'தவறான PIN. ') + (MAX_ATTEMPTS-ATTEMPTS) + ' ' + ut('attempts left.', 'முயற்சிகள் மீதம்.');
-  if (field) { field.value = ''; field.focus(); }
+  setTimeout(function() {
+    boxes.forEach(function(b){ b.value=''; b.classList.remove('filled'); b.classList.remove('pb-shake'); });
+    var first = document.getElementById('otp-0');
+    if (first) first.focus();
+  }, 350);
 }
 
 function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
 function initialsOf(name) {
   return String(name||'?').trim().split(/\s+/).slice(0,2).map(function(w){return w[0];}).join('').toUpperCase() || '?';
+}
+
+function animateCountUp(el, target, duration) {
+  if (!el) return;
+  duration = duration || 700;
+  var startTime = null;
+  function ease(t) { return 1 - Math.pow(1 - t, 3); } // ease-out cubic
+  function step(ts) {
+    if (!startTime) startTime = ts;
+    var progress = Math.min(1, (ts - startTime) / duration);
+    var current = target * ease(progress);
+    el.textContent = fmtRs(current);
+    if (progress < 1) requestAnimationFrame(step);
+    else el.textContent = fmtRs(target);
+  }
+  requestAnimationFrame(step);
 }
 
 function renderPassbook() {
@@ -345,7 +488,7 @@ function renderPassbook() {
         '<div class="pb-asof">' + ut('Snapshot generated on','தரவு உருவாக்கப்பட்ட தேதி') + ' ' + fmtD(PAYLOAD.gen) + '</div></div>' +
       '</div>' +
       '<div class="summary">' +
-        '<div><div class="lbl">' + ut('Total Payable Today','இன்று செலுத்த வேண்டிய மொத்தம்') + '</div><div class="val">' + fmtRs(totalOutstanding) + '</div></div>' +
+        '<div><div class="lbl">' + ut('Total Payable Today','இன்று செலுத்த வேண்டிய மொத்தம்') + '</div><div class="val countup-val" id="countup-target">₹0</div></div>' +
         '<div style="font-size:26px;">📘</div>' +
       '</div>' +
       '<div class="warn-strip">⚠️ ' + ut('Principal figures are as of the snapshot date above. If you made a payment after that date, the figures here may not reflect it yet — please confirm with the shop.','மேலே உள்ள தேதி வரை உள்ள தரவு இது. அதற்குப் பின் பணம் செலுத்தியிருந்தால், இங்குள்ள தொகை புதுப்பிக்கப்படாமல் இருக்கலாம் — கடையில் உறுதி செய்யவும்.') + '</div>' +
@@ -354,6 +497,8 @@ function renderPassbook() {
     '<div class="shop-foot">' +
       (PAYLOAD.sp ? ('📞 ' + ut('Contact','தொடர்பு') + ': <b>' + esc(PAYLOAD.sp) + '</b>') : '') +
     '</div>';
+
+  animateCountUp(document.getElementById('countup-target'), totalOutstanding, 700);
 }
 
 boot();
