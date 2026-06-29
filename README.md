@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -17,9 +18,20 @@
     min-height:100vh; display:flex; align-items:center; justify-content:center;
     padding:18px; color:var(--ink2);
   }
+  @keyframes pb-card-in   { from{opacity:0;transform:translateY(22px) scale(.97)} to{opacity:1;transform:none} }
+  @keyframes pb-sec-in    { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:none} }
+  @keyframes pb-icon-pop  { 0%{transform:scale(.4) rotate(-12deg);opacity:0} 60%{transform:scale(1.12) rotate(5deg)} 100%{transform:scale(1) rotate(0);opacity:1} }
+  @keyframes pb-shake     { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-8px)} 40%{transform:translateX(7px)} 60%{transform:translateX(-5px)} 80%{transform:translateX(3px)} }
+  @keyframes pb-check-in  { 0%{opacity:0;transform:scale(.5) rotate(-15deg)} 60%{transform:scale(1.15) rotate(5deg)} 100%{opacity:1;transform:scale(1) rotate(0)} }
+  @keyframes pb-fade-out  { from{opacity:1} to{opacity:0} }
+  @keyframes pb-avatar-pop{ 0%{transform:scale(.5) rotate(-8deg);opacity:0} 60%{transform:scale(1.08) rotate(3deg)} 100%{transform:scale(1) rotate(0);opacity:1} }
+  @keyframes pb-glow-pulse{ 0%,100%{box-shadow:0 0 0 0 rgba(232,201,122,.0)} 50%{box-shadow:0 0 0 6px rgba(232,201,122,.16)} }
+  @keyframes pb-spin      { from{transform:rotate(0)} to{transform:rotate(360deg)} }
+
   .card{
     background:var(--cream); border-radius:18px; max-width:430px; width:100%;
     box-shadow:0 20px 60px rgba(0,0,0,.5); overflow:hidden;
+    animation: pb-card-in .45s cubic-bezier(.22,1,.36,1);
   }
   .hdr{
     background:linear-gradient(135deg,#0F1A10 0%,#16331F 45%,#2C1F0A 100%);
@@ -31,40 +43,65 @@
     position:absolute; top:14px; right:14px; background:rgba(255,255,255,.12);
     border:1px solid rgba(232,201,122,.35); color:#E8C97A; border-radius:8px;
     font-size:11px; font-weight:700; padding:6px 9px; cursor:pointer;
+    transition: transform .15s ease, background .15s ease;
   }
-  .body{padding:20px;}
+  .hdr .lang-toggle:hover{ background:rgba(255,255,255,.2); }
+  .hdr .lang-toggle:active{ transform: scale(.93); }
+  .body{padding:20px; animation: pb-sec-in .4s cubic-bezier(.22,1,.36,1) .05s both;}
   .gate{text-align:center;}
-  .gate .icon{font-size:38px;margin-bottom:6px;}
+  .gate .icon{
+    font-size:42px;margin-bottom:8px;display:inline-block;
+    animation: pb-icon-pop .5s cubic-bezier(.22,1,.36,1);
+  }
+  .gate .icon.unlocking{ animation: pb-check-in .45s cubic-bezier(.22,1,.36,1); }
   .gate h2{font-size:15px;font-weight:800;color:var(--ink);margin-bottom:6px;}
   .gate p{font-size:12.5px;color:var(--muted);line-height:1.5;margin-bottom:18px;}
   .pin-input{
     width:100%; max-width:220px; text-align:center; letter-spacing:6px;
     font-size:22px; font-weight:800; padding:12px 10px; border:2px solid var(--line);
     border-radius:10px; outline:none; font-family:monospace; color:var(--ink);
+    transition: border-color .15s ease, box-shadow .15s ease;
   }
-  .pin-input:focus{border-color:var(--gold);}
+  .pin-input:focus{border-color:var(--gold); box-shadow:0 0 0 4px rgba(201,168,76,.15);}
+  .pin-input.pb-shake{ animation: pb-shake .4s ease; border-color: var(--bad); }
   .unlock-btn{
     margin-top:16px; width:100%; max-width:220px; padding:12px; border:none;
     border-radius:10px; background:linear-gradient(135deg,var(--gold),var(--gold-dk));
     color:#fff; font-size:14px; font-weight:800; cursor:pointer;
+    transition: transform .15s ease, box-shadow .15s ease, filter .15s ease;
   }
+  .unlock-btn:hover:not(:disabled){ transform: translateY(-1px); filter: brightness(1.05); box-shadow: 0 6px 16px rgba(154,122,48,.35); }
+  .unlock-btn:active:not(:disabled){ transform: translateY(0) scale(.98); }
   .unlock-btn:disabled{opacity:.5;cursor:not-allowed;}
+  .unlock-btn .spin{ display:inline-block; animation: pb-spin .6s linear infinite; }
   .err-msg{color:var(--bad); font-size:12px; font-weight:700; margin-top:12px; min-height:16px;}
   .footer-note{font-size:10.5px;color:#aaa;text-align:center;margin-top:18px;line-height:1.5;}
 
-  .pb-header-row{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px;}
+  .pb-header-row{display:flex;align-items:center;gap:12px;margin-bottom:14px;}
+  .pb-avatar{
+    width:42px;height:42px;border-radius:50%;flex-shrink:0;
+    background:linear-gradient(135deg,var(--gold),var(--gold-dk));
+    display:flex;align-items:center;justify-content:center;
+    font-size:15px;font-weight:800;color:#1A1209;
+    box-shadow:0 3px 10px rgba(154,122,48,.3);
+    animation: pb-avatar-pop .45s cubic-bezier(.22,1,.36,1);
+  }
   .pb-cust{font-size:16px;font-weight:800;color:var(--ink);}
   .pb-asof{font-size:10.5px;color:var(--muted);margin-top:2px;}
   .summary{
     background:var(--ink2); color:#E8C97A; border-radius:12px; padding:14px 16px;
     margin-bottom:16px; display:flex; justify-content:space-between; align-items:center;
+    animation: pb-sec-in .4s cubic-bezier(.22,1,.36,1) .08s both, pb-glow-pulse 3s ease-in-out infinite;
   }
   .summary .lbl{font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:rgba(232,201,122,.7);}
   .summary .val{font-size:20px;font-weight:800;margin-top:2px;}
   .pledge-card{
     border:1.5px solid var(--line); border-radius:12px; padding:13px 14px; margin-bottom:12px;
     background:var(--paper);
+    animation: pb-sec-in .35s cubic-bezier(.22,1,.36,1) both;
+    transition: transform .15s ease, box-shadow .15s ease;
   }
+  .pledge-card:hover{ transform: translateY(-2px); box-shadow: 0 4px 14px rgba(0,0,0,.08); }
   .pledge-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:8px;}
   .pledge-no{font-size:13px;font-weight:800;color:var(--ink);}
   .pledge-item{font-size:11px;color:var(--muted);margin-top:1px;}
@@ -81,10 +118,13 @@
     border-top:1px solid var(--line); margin-top:6px;
   }
   .shop-foot b{color:var(--ink);}
-  .lockout{background:#FDE6E4;color:var(--bad);border-radius:10px;padding:10px;font-size:12px;font-weight:700;margin-top:14px;}
+  .lockout{background:#FDE6E4;color:var(--bad);border-radius:10px;padding:10px;font-size:12px;font-weight:700;margin-top:14px;animation: pb-sec-in .3s ease both;}
   .empty-state{text-align:center;padding:30px 10px;color:var(--muted);font-size:13px;}
   .no-data{padding:34px 20px;text-align:center;color:#888;}
-  .warn-strip{background:#FFF8E1;border:1px solid #FCE38A;border-radius:8px;padding:9px 11px;font-size:10.5px;color:#8A6D00;margin-bottom:14px;line-height:1.5;}
+  .warn-strip{background:#FFF8E1;border:1px solid #FCE38A;border-radius:8px;padding:9px 11px;font-size:10.5px;color:#8A6D00;margin-bottom:14px;line-height:1.5;animation: pb-sec-in .35s ease .04s both;}
+  @media (prefers-reduced-motion: reduce){
+    .card,.body,.gate .icon,.pb-avatar,.summary,.pledge-card,.warn-strip,.lockout{ animation:none !important; }
+  }
 </style>
 </head>
 <body>
@@ -231,27 +271,47 @@ function tryUnlock() {
   if (!val) return;
   if (expected && val === expected) {
     ATTEMPTS = 0;
-    renderPassbook();
+    var icon = document.querySelector('.gate .icon');
+    var btn = document.getElementById('unlock-btn');
+    var field = document.getElementById('pin-field');
+    if (icon) { icon.textContent = '✅'; icon.classList.add('unlocking'); }
+    if (field) field.disabled = true;
+    if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spin">⏳</span>'; }
+    var box = document.getElementById('pin-gate-box');
+    setTimeout(function() {
+      if (box) box.style.animation = 'pb-fade-out .2s ease forwards';
+      setTimeout(renderPassbook, 180);
+    }, 320);
     return;
   }
   ATTEMPTS++;
   var errEl = document.getElementById('err-msg');
+  var field = document.getElementById('pin-field');
+  if (field) {
+    field.classList.remove('pb-shake');
+    // restart the animation even if triggered twice in a row
+    void field.offsetWidth;
+    field.classList.add('pb-shake');
+  }
   if (ATTEMPTS >= MAX_ATTEMPTS) {
     LOCKED_UNTIL = Date.now() + LOCK_SECONDS*1000;
-    renderGate();
+    setTimeout(renderGate, 280);
     return;
   }
   if (errEl) errEl.textContent = ut('Incorrect PIN. ', 'தவறான PIN. ') + (MAX_ATTEMPTS-ATTEMPTS) + ' ' + ut('attempts left.', 'முயற்சிகள் மீதம்.');
-  document.getElementById('pin-field').value = '';
-  document.getElementById('pin-field').focus();
+  if (field) { field.value = ''; field.focus(); }
 }
 
 function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
+function initialsOf(name) {
+  return String(name||'?').trim().split(/\s+/).slice(0,2).map(function(w){return w[0];}).join('').toUpperCase() || '?';
+}
+
 function renderPassbook() {
   var pledges = PAYLOAD.p || [];
   var totalOutstanding = 0;
-  var cardsHtml = pledges.map(function(pl) {
+  var cardsHtml = pledges.map(function(pl, idx) {
     var due = pledgeDue(pl);
     totalOutstanding += due.total;
     var overdueDays = daysBetween(pl.dd, today()); // positive once due date is in the past
@@ -259,7 +319,7 @@ function renderPassbook() {
     if (overdueDays > 0) { badgeClass='overdue'; badge = ut('Overdue '+overdueDays+'d','தாமதம் '+overdueDays+'நா'); }
     else if (overdueDays === 0) { badgeClass='due'; badge = ut('Due today','இன்று செலுத்த வேண்டும்'); }
     else { badgeClass='ok'; badge = ut('Active','செயலில்'); }
-    return '<div class="pledge-card">' +
+    return '<div class="pledge-card" style="animation-delay:' + (.12 + idx*.07) + 's;">' +
       '<div class="pledge-top">' +
         '<div><div class="pledge-no">' + esc(pl.b) + '</div>' +
         '<div class="pledge-item">' + esc(pl.it || '—') + '</div></div>' +
@@ -280,6 +340,7 @@ function renderPassbook() {
     '</div>' +
     '<div class="body">' +
       '<div class="pb-header-row">' +
+        '<div class="pb-avatar">' + esc(initialsOf(PAYLOAD.cn)) + '</div>' +
         '<div><div class="pb-cust">' + esc(PAYLOAD.cn) + '</div>' +
         '<div class="pb-asof">' + ut('Snapshot generated on','தரவு உருவாக்கப்பட்ட தேதி') + ' ' + fmtD(PAYLOAD.gen) + '</div></div>' +
       '</div>' +
