@@ -1,507 +1,381 @@
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ta">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-<title>Customer Passbook</title>
+<meta name="robots" content="noindex, nofollow">
+<title>📘 Customer Passbook</title>
 <style>
   :root{
-    --gold:#C9A84C; --gold-dk:#9A7A30; --ink:#2C1F0A; --ink2:#1A1209;
-    --cream:#FFFEFA; --paper:#FAF5EC; --line:#EDE3C5; --muted:#8A7350;
-    --ok:#1A7A3C; --warn:#B36B00; --bad:#C0392B;
+    --gold:#C9A84C; --gold-lt:#E8C97A; --ink:#1A1209; --bg:#0F0C06;
+    --card:#FFFEFA; --green:#1A7A3C; --red:#C0392B; --amber:#B8860B;
   }
-  *{box-sizing:border-box;margin:0;padding:0;}
-  body{
-    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
-    background:linear-gradient(135deg,#0F1A10 0%,#16331F 45%,#2C1F0A 100%);
-    min-height:100vh; display:flex; align-items:center; justify-content:center;
-    padding:18px; color:var(--ink2);
-  }
-  @keyframes pb-card-in   { from{opacity:0;transform:translateY(22px) scale(.97)} to{opacity:1;transform:none} }
-  @keyframes pb-sec-in    { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:none} }
-  @keyframes pb-icon-pop  { 0%{transform:scale(.4) rotate(-12deg);opacity:0} 60%{transform:scale(1.12) rotate(5deg)} 100%{transform:scale(1) rotate(0);opacity:1} }
-  @keyframes pb-shake     { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-8px)} 40%{transform:translateX(7px)} 60%{transform:translateX(-5px)} 80%{transform:translateX(3px)} }
-  @keyframes pb-check-in  { 0%{opacity:0;transform:scale(.5) rotate(-15deg)} 60%{transform:scale(1.15) rotate(5deg)} 100%{opacity:1;transform:scale(1) rotate(0)} }
-  @keyframes pb-fade-out  { from{opacity:1} to{opacity:0} }
-  @keyframes pb-avatar-pop{ 0%{transform:scale(.5) rotate(-8deg);opacity:0} 60%{transform:scale(1.08) rotate(3deg)} 100%{transform:scale(1) rotate(0);opacity:1} }
-  @keyframes pb-glow-pulse{ 0%,100%{box-shadow:0 0 0 0 rgba(232,201,122,.0)} 50%{box-shadow:0 0 0 6px rgba(232,201,122,.16)} }
-  @keyframes pb-spin      { from{transform:rotate(0)} to{transform:rotate(360deg)} }
-  @keyframes pb-shine     { 0%{transform:translateX(-120%) skewX(-12deg);} 100%{transform:translateX(220%) skewX(-12deg);} }
-  @keyframes pb-otp-pop   { from{opacity:0;transform:translateY(8px) scale(.85)} to{opacity:1;transform:none} }
-  @keyframes pb-otp-fill  { 0%{transform:scale(1)} 40%{transform:scale(1.12)} 100%{transform:scale(1)} }
-  @keyframes pb-ring-draw { from{stroke-dashoffset:151} to{stroke-dashoffset:0} }
-  @keyframes pb-check-draw{ from{stroke-dashoffset:36} to{stroke-dashoffset:0} }
-  @keyframes pb-countup-glow{ 0%{text-shadow:0 0 0 rgba(232,201,122,0)} 50%{text-shadow:0 0 14px rgba(232,201,122,.55)} 100%{text-shadow:0 0 0 rgba(232,201,122,0)} }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+  body{font-family:'Segoe UI','Noto Sans Tamil','Nirmala UI',Arial,sans-serif;background:linear-gradient(160deg,#0F0C06 0%,#1A1105 50%,#0F0C06 100%);min-height:100vh;color:var(--ink);padding:14px 12px 40px;}
+  .wrap{max-width:460px;margin:0 auto;}
 
-  .hdr{ overflow:hidden; }
-  .hdr::after{
-    content:''; position:absolute; top:0; left:0; width:60%; height:100%;
-    background:linear-gradient(100deg, transparent, rgba(232,201,122,.18), transparent);
-    animation: pb-shine 1.8s ease-out .3s 1;
-    pointer-events:none;
-  }
+  /* ── Header ── */
+  .hdr{text-align:center;padding:18px 10px 14px;animation:fadeUp .5s ease both;}
+  .hdr .shop{font-size:20px;font-weight:800;color:var(--gold-lt);letter-spacing:.3px;}
+  .hdr .shopTa{font-size:14px;font-weight:700;color:rgba(232,201,122,.75);margin-top:2px;}
+  .hdr .tag{display:inline-flex;align-items:center;gap:6px;margin-top:8px;font-size:11px;color:rgba(232,201,122,.6);background:rgba(255,255,255,.05);border:1px solid rgba(232,201,122,.2);border-radius:20px;padding:4px 12px;}
+  .hdr .tag .dot{width:6px;height:6px;border-radius:50%;background:#66BB6A;animation:pulse 1.8s ease-out infinite;}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(102,187,106,.5)}100%{box-shadow:0 0 0 8px rgba(102,187,106,0)}}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+  @keyframes cardIn{from{opacity:0;transform:translateY(18px) scale(.97)}to{opacity:1;transform:none}}
+  @keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
+  @keyframes popIn{0%{opacity:0;transform:scale(.6)}70%{transform:scale(1.06)}100%{opacity:1;transform:scale(1)}}
 
-  .otp-row{ display:flex; gap:8px; justify-content:center; margin:0 auto; max-width:280px; }
-  .otp-box{
-    width:42px; height:52px; text-align:center; font-size:22px; font-weight:800;
-    border:2px solid var(--line); border-radius:10px; outline:none; color:var(--ink);
-    font-family:monospace; background:#fff;
-    transition: border-color .15s ease, box-shadow .15s ease, transform .15s ease;
-    animation: pb-otp-pop .35s cubic-bezier(.22,1,.36,1) both;
-  }
-  .otp-box:nth-child(1){animation-delay:.02s;} .otp-box:nth-child(2){animation-delay:.06s;}
-  .otp-box:nth-child(3){animation-delay:.10s;} .otp-box:nth-child(4){animation-delay:.14s;}
-  .otp-box:nth-child(5){animation-delay:.18s;} .otp-box:nth-child(6){animation-delay:.22s;}
-  .otp-box:focus{ border-color:var(--gold); box-shadow:0 0 0 4px rgba(201,168,76,.18); }
-  .otp-box.filled{ border-color:var(--gold-dk); background:#FFFBF0; animation: pb-otp-fill .22s ease; }
-  .otp-box.pb-shake{ animation: pb-shake .4s ease; border-color: var(--bad); background:#FFF5F4; }
-  .otp-box:disabled{ opacity:.55; }
+  /* ── Language toggle ── */
+  .langbar{display:flex;justify-content:center;margin-bottom:10px;}
+  .langbar button{background:rgba(255,255,255,.06);border:1px solid rgba(232,201,122,.25);color:rgba(232,201,122,.8);font-size:11px;font-weight:700;padding:5px 14px;cursor:pointer;}
+  .langbar button:first-child{border-radius:16px 0 0 16px;}
+  .langbar button:last-child{border-radius:0 16px 16px 0;border-left:none;}
+  .langbar button.on{background:var(--gold);color:#1A1209;border-color:var(--gold);}
 
-  .unlock-ring-wrap{ width:64px; height:64px; margin:0 auto 8px; position:relative; }
-  .unlock-ring-wrap svg{ width:64px; height:64px; transform:rotate(-90deg); }
-  .unlock-ring-wrap circle.bg{ fill:none; stroke:var(--line); stroke-width:5; }
-  .unlock-ring-wrap circle.fg{
-    fill:none; stroke:var(--ok); stroke-width:5; stroke-linecap:round;
-    stroke-dasharray:151; stroke-dashoffset:151;
-    animation: pb-ring-draw .5s ease forwards;
-  }
-  .unlock-ring-wrap path.chk{
-    fill:none; stroke:var(--ok); stroke-width:5; stroke-linecap:round; stroke-linejoin:round;
-    stroke-dasharray:36; stroke-dashoffset:36;
-    animation: pb-check-draw .3s ease .45s forwards;
-  }
+  /* ── PIN gate ── */
+  .gate{background:var(--card);border-radius:18px;padding:26px 22px;text-align:center;box-shadow:0 16px 44px rgba(0,0,0,.45);animation:cardIn .45s cubic-bezier(.22,1,.36,1) both;}
+  .gate .lock{font-size:38px;animation:popIn .5s cubic-bezier(.22,1,.36,1) .1s both;}
+  .gate h2{font-size:16px;font-weight:800;color:#2C1F0A;margin:10px 0 4px;}
+  .gate p{font-size:11.5px;color:#8A7350;line-height:1.55;margin-bottom:16px;}
+  .gate .cn{font-size:13px;font-weight:800;color:#1A4A8C;margin-bottom:14px;}
+  .pinrow{display:flex;gap:8px;justify-content:center;margin-bottom:14px;}
+  .pinrow input{width:100%;max-width:200px;text-align:center;font-family:monospace;font-size:24px;font-weight:800;letter-spacing:8px;padding:10px 6px;border:2px solid #E4D8B8;border-radius:12px;background:#FFFDF4;color:#2C1F0A;outline:none;transition:border-color .2s;}
+  .pinrow input:focus{border-color:var(--gold);}
+  .gate.err .pinrow{animation:shake .4s ease;}
+  .gate .errmsg{font-size:11px;color:var(--red);font-weight:700;min-height:16px;margin-bottom:8px;}
+  .gate button{width:100%;max-width:220px;padding:12px;border:none;border-radius:12px;background:linear-gradient(135deg,#1A4A8C,#0F2E5E);color:#fff;font-size:14px;font-weight:800;cursor:pointer;transition:transform .15s,filter .15s;}
+  .gate button:hover{filter:brightness(1.08);}
+  .gate button:active{transform:scale(.97);}
 
-  .countup-val{ animation: pb-countup-glow 1s ease .55s; }
+  /* ── Passbook body ── */
+  .book{display:none;}
+  .sumcard{background:linear-gradient(135deg,#16331F 0%,#0F1A10 60%,#2C1F0A 100%);border:1px solid rgba(232,201,122,.25);border-radius:18px;padding:16px;margin-bottom:14px;animation:cardIn .45s ease both;box-shadow:0 12px 36px rgba(0,0,0,.4);}
+  .sumcard .who{display:flex;align-items:center;gap:11px;margin-bottom:13px;}
+  .sumcard .av{width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#C9A84C,#9A7A30);display:flex;align-items:center;justify-content:center;font-weight:800;color:#1A1209;font-size:15px;flex-shrink:0;animation:popIn .5s ease .1s both;}
+  .sumcard .nm{font-size:15px;font-weight:800;color:var(--gold-lt);}
+  .sumcard .asof{font-size:10px;color:rgba(232,201,122,.55);margin-top:1px;}
+  .sumgrid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
+  .sumgrid .cell{background:rgba(255,255,255,.06);border:1px solid rgba(232,201,122,.18);border-radius:11px;padding:9px 5px;text-align:center;}
+  .sumgrid .v{font-size:14px;font-weight:800;color:var(--gold-lt);}
+  .sumgrid .l{font-size:8px;color:rgba(232,201,122,.6);text-transform:uppercase;letter-spacing:.4px;margin-top:2px;}
 
+  .stale{background:#FFF3CD;border:1px solid #F5D77E;border-radius:12px;padding:10px 13px;font-size:11px;color:#7A5C00;line-height:1.5;margin-bottom:12px;animation:cardIn .45s ease .05s both;}
 
-  .card{
-    background:var(--cream); border-radius:18px; max-width:430px; width:100%;
-    box-shadow:0 20px 60px rgba(0,0,0,.5); overflow:hidden;
-    animation: pb-card-in .45s cubic-bezier(.22,1,.36,1);
-  }
-  .hdr{
-    background:linear-gradient(135deg,#0F1A10 0%,#16331F 45%,#2C1F0A 100%);
-    padding:18px 52px 18px 20px; color:#E8C97A; position:relative;
-  }
-  .hdr .brand{font-size:15px;font-weight:800;letter-spacing:.2px;}
-  .hdr .sub{font-size:11px;color:rgba(232,201,122,.75);margin-top:2px;}
-  .hdr .lang-toggle{
-    position:absolute; top:14px; right:14px; background:rgba(255,255,255,.12);
-    border:1px solid rgba(232,201,122,.35); color:#E8C97A; border-radius:8px;
-    font-size:11px; font-weight:700; padding:6px 9px; cursor:pointer;
-    transition: transform .15s ease, background .15s ease;
-  }
-  .hdr .lang-toggle:hover{ background:rgba(255,255,255,.2); }
-  .hdr .lang-toggle:active{ transform: scale(.93); }
-  .body{padding:20px; animation: pb-sec-in .4s cubic-bezier(.22,1,.36,1) .05s both;}
-  .gate{text-align:center;}
-  .gate .icon{
-    font-size:42px;margin-bottom:8px;display:inline-block;
-    animation: pb-icon-pop .5s cubic-bezier(.22,1,.36,1);
-  }
-  .gate .icon.unlocking{ animation: pb-check-in .45s cubic-bezier(.22,1,.36,1); }
-  .gate h2{font-size:15px;font-weight:800;color:var(--ink);margin-bottom:6px;}
-  .gate p{font-size:12.5px;color:var(--muted);line-height:1.5;margin-bottom:18px;}
-  .pin-input{
-    width:100%; max-width:220px; text-align:center; letter-spacing:6px;
-    font-size:22px; font-weight:800; padding:12px 10px; border:2px solid var(--line);
-    border-radius:10px; outline:none; font-family:monospace; color:var(--ink);
-    transition: border-color .15s ease, box-shadow .15s ease;
-  }
-  .pin-input:focus{border-color:var(--gold); box-shadow:0 0 0 4px rgba(201,168,76,.15);}
-  .pin-input.pb-shake{ animation: pb-shake .4s ease; border-color: var(--bad); }
-  .unlock-btn{
-    margin-top:16px; width:100%; max-width:220px; padding:12px; border:none;
-    border-radius:10px; background:linear-gradient(135deg,var(--gold),var(--gold-dk));
-    color:#fff; font-size:14px; font-weight:800; cursor:pointer;
-    transition: transform .15s ease, box-shadow .15s ease, filter .15s ease;
-  }
-  .unlock-btn:hover:not(:disabled){ transform: translateY(-1px); filter: brightness(1.05); box-shadow: 0 6px 16px rgba(154,122,48,.35); }
-  .unlock-btn:active:not(:disabled){ transform: translateY(0) scale(.98); }
-  .unlock-btn:disabled{opacity:.5;cursor:not-allowed;}
-  .unlock-btn .spin{ display:inline-block; animation: pb-spin .6s linear infinite; }
-  .err-msg{color:var(--bad); font-size:12px; font-weight:700; margin-top:12px; min-height:16px;}
-  .footer-note{font-size:10.5px;color:#aaa;text-align:center;margin-top:18px;line-height:1.5;}
+  .pcard{background:var(--card);border-radius:16px;padding:15px 15px 13px;margin-bottom:12px;box-shadow:0 8px 26px rgba(0,0,0,.35);animation:cardIn .45s ease both;position:relative;overflow:hidden;}
+  .pcard::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--gold),#F5E3A8,var(--gold));}
+  .pcard .top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:8px;}
+  .pcard .bill{font-size:10px;color:#9A7A30;font-weight:700;}
+  .pcard .item{font-size:13.5px;font-weight:800;color:#2C1F0A;margin-top:1px;line-height:1.35;}
+  .badge{font-size:9px;font-weight:800;border-radius:14px;padding:4px 9px;white-space:nowrap;flex-shrink:0;}
+  .badge.ok{background:#EBF7EF;color:var(--green);border:1px solid #BFE3CB;}
+  .badge.due{background:#FDECEA;color:var(--red);border:1px solid #F4C2BC;animation:popIn .4s ease both;}
+  .kv{display:grid;grid-template-columns:1fr 1fr;gap:6px 10px;font-size:11px;margin-bottom:9px;}
+  .kv .k{color:#9A8A60;font-size:9.5px;text-transform:uppercase;letter-spacing:.3px;}
+  .kv .v{font-weight:700;color:#3D2B0F;margin-top:1px;}
+  .duebar{background:linear-gradient(135deg,#FFF8E1,#FFF3CD);border:1.5px solid #F0DA9A;border-radius:12px;padding:10px 13px;display:flex;justify-content:space-between;align-items:center;margin-bottom:9px;}
+  .duebar .l{font-size:10px;color:#8A6D00;font-weight:700;}
+  .duebar .v{font-size:17px;font-weight:800;color:#5C4A1E;}
+  .duebar.zero{background:#EBF7EF;border-color:#BFE3CB;}
+  .duebar.zero .l{color:var(--green);}
+  .duebar.zero .v{color:var(--green);font-size:13px;}
+  .mnote{font-size:9.5px;color:#9A8A60;line-height:1.5;margin-bottom:9px;}
 
-  .pb-header-row{display:flex;align-items:center;gap:12px;margin-bottom:14px;}
-  .pb-avatar{
-    width:42px;height:42px;border-radius:50%;flex-shrink:0;
-    background:linear-gradient(135deg,var(--gold),var(--gold-dk));
-    display:flex;align-items:center;justify-content:center;
-    font-size:15px;font-weight:800;color:#1A1209;
-    box-shadow:0 3px 10px rgba(154,122,48,.3);
-    animation: pb-avatar-pop .45s cubic-bezier(.22,1,.36,1);
-  }
-  .pb-cust{font-size:16px;font-weight:800;color:var(--ink);}
-  .pb-asof{font-size:10.5px;color:var(--muted);margin-top:2px;}
-  .summary{
-    background:var(--ink2); color:#E8C97A; border-radius:12px; padding:14px 16px;
-    margin-bottom:16px; display:flex; justify-content:space-between; align-items:center;
-    animation: pb-sec-in .4s cubic-bezier(.22,1,.36,1) .08s both, pb-glow-pulse 3s ease-in-out infinite;
-  }
-  .summary .lbl{font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:rgba(232,201,122,.7);}
-  .summary .val{font-size:20px;font-weight:800;margin-top:2px;}
-  .pledge-card{
-    border:1.5px solid var(--line); border-radius:12px; padding:13px 14px; margin-bottom:12px;
-    background:var(--paper);
-    animation: pb-sec-in .35s cubic-bezier(.22,1,.36,1) both;
-    transition: transform .15s ease, box-shadow .15s ease;
-  }
-  .pledge-card:hover{ transform: translateY(-2px); box-shadow: 0 4px 14px rgba(0,0,0,.08); }
-  .pledge-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:8px;}
-  .pledge-no{font-size:13px;font-weight:800;color:var(--ink);}
-  .pledge-item{font-size:11px;color:var(--muted);margin-top:1px;}
-  .badge{font-size:9.5px;font-weight:800;padding:3px 8px;border-radius:20px;white-space:nowrap;}
-  .badge.ok{background:#E3F5E8;color:var(--ok);}
-  .badge.due{background:#FFF3DC;color:var(--warn);}
-  .badge.overdue{background:#FDE6E4;color:var(--bad);}
-  .row{display:flex;justify-content:space-between;font-size:12px;padding:3px 0;color:#5A4A2E;}
-  .row b{color:var(--ink);font-weight:700;}
-  .row.total{border-top:1px dashed var(--line);margin-top:6px;padding-top:7px;font-size:13px;}
-  .row.total b{color:var(--gold-dk);font-size:15px;}
-  .shop-foot{
-    text-align:center; padding:14px 20px 20px; font-size:11px; color:var(--muted);
-    border-top:1px solid var(--line); margin-top:6px;
-  }
-  .shop-foot b{color:var(--ink);}
-  .lockout{background:#FDE6E4;color:var(--bad);border-radius:10px;padding:10px;font-size:12px;font-weight:700;margin-top:14px;animation: pb-sec-in .3s ease both;}
-  .empty-state{text-align:center;padding:30px 10px;color:var(--muted);font-size:13px;}
-  .no-data{padding:34px 20px;text-align:center;color:#888;}
-  .warn-strip{background:#FFF8E1;border:1px solid #FCE38A;border-radius:8px;padding:9px 11px;font-size:10.5px;color:#8A6D00;margin-bottom:14px;line-height:1.5;animation: pb-sec-in .35s ease .04s both;}
-  @media (prefers-reduced-motion: reduce){
-    .card,.body,.gate .icon,.pb-avatar,.summary,.pledge-card,.warn-strip,.lockout,
-    .hdr::after,.otp-box,.unlock-ring-wrap circle.fg,.unlock-ring-wrap path.chk,.countup-val{ animation:none !important; }
-  }
+  /* pay row */
+  .payrow{border-top:1px dashed #E4D8B8;padding-top:10px;margin-top:2px;}
+  .payrow .pl{font-size:9.5px;font-weight:800;color:#8A7350;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;}
+  .payamt{display:flex;align-items:center;gap:7px;margin-bottom:7px;}
+  .payamt span{font-size:12px;font-weight:800;color:#5C4A1E;}
+  .payamt input{flex:1;min-width:0;padding:8px 10px;border:1.5px solid #E4D8B8;border-radius:9px;font-size:14px;font-weight:800;color:#2C1F0A;background:#FFFDF4;outline:none;}
+  .payamt input:focus{border-color:var(--gold);}
+  .paybtns{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:5px;}
+  .paybtns a{display:block;text-align:center;text-decoration:none;font-size:9px;font-weight:800;padding:8px 2px;border-radius:9px;border:1px solid #ddd;background:#fff;transition:transform .12s;}
+  .paybtns a:active{transform:scale(.94);}
+  .paybtns .gp{color:#1a73e8;} .paybtns .pp{color:#5f259f;} .paybtns .pt{color:#00baf2;} .paybtns .up{color:#3D2B0F;border-color:#E4D8B8;background:#FFF8E8;}
+
+  /* payment history */
+  .hist{border-top:1px dashed #E4D8B8;margin-top:10px;padding-top:8px;}
+  .hist summary{font-size:10.5px;font-weight:800;color:#1A4A8C;cursor:pointer;list-style:none;display:flex;align-items:center;gap:5px;user-select:none;}
+  .hist summary::before{content:'▸';transition:transform .2s;}
+  .hist[open] summary::before{transform:rotate(90deg);}
+  .hist table{width:100%;border-collapse:collapse;margin-top:7px;font-size:10.5px;}
+  .hist td{padding:5px 4px;border-bottom:1px dotted #EEE4CC;}
+  .hist td:last-child{text-align:right;font-weight:800;color:var(--green);}
+  .hist .hk{font-size:8.5px;background:#F2ECDC;color:#8A7350;border-radius:8px;padding:1px 6px;font-weight:700;}
+
+  /* closed pledges */
+  .sect-title{font-size:11px;font-weight:800;color:rgba(232,201,122,.85);text-transform:uppercase;letter-spacing:.7px;margin:16px 2px 8px;animation:fadeUp .4s ease both;}
+  .ccard{background:rgba(255,254,250,.94);border-radius:13px;padding:11px 13px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;gap:8px;animation:cardIn .4s ease both;}
+  .ccard .ci{min-width:0;}
+  .ccard .cb{font-size:9.5px;color:#9A7A30;font-weight:700;}
+  .ccard .cn2{font-size:12px;font-weight:800;color:#2C1F0A;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .ccard .cd{font-size:9.5px;color:#8A8A8A;margin-top:1px;}
+  .ccard .cst{font-size:9px;font-weight:800;border-radius:12px;padding:4px 9px;flex-shrink:0;background:#EBF7EF;color:var(--green);}
+  .ccard .cst.fc{background:#FDECEA;color:var(--red);}
+
+  /* footer */
+  .foot{text-align:center;margin-top:18px;animation:fadeUp .5s ease both;}
+  .callbtn{display:inline-flex;align-items:center;gap:7px;background:rgba(255,255,255,.07);border:1px solid rgba(232,201,122,.3);color:var(--gold-lt);border-radius:24px;padding:9px 20px;font-size:12.5px;font-weight:800;text-decoration:none;transition:transform .15s;}
+  .callbtn:active{transform:scale(.96);}
+  .foot .addr{font-size:10px;color:rgba(232,201,122,.5);margin-top:10px;line-height:1.5;}
+  .foot .note{font-size:9px;color:rgba(232,201,122,.35);margin-top:12px;line-height:1.6;}
+  .badlink{background:var(--card);border-radius:16px;padding:26px 20px;text-align:center;font-size:13px;color:#8A7350;line-height:1.6;box-shadow:0 12px 32px rgba(0,0,0,.4);}
 </style>
 </head>
 <body>
-<div class="card" id="app">
-  <div class="no-data">
-    <div style="font-size:38px;margin-bottom:10px;">🔗</div>
-    <div>Loading…</div>
+<div class="wrap">
+  <div class="langbar"><button id="lang-en" class="on" onclick="setLang('en')">English</button><button id="lang-ta" onclick="setLang('ta')">தமிழ்</button></div>
+  <div class="hdr">
+    <div class="shop" id="h-shop">📘</div>
+    <div class="shopTa" id="h-shopta" style="display:none;"></div>
+    <div class="tag"><span class="dot"></span><span data-i="live">Live dues — calculated fresh every time you open this</span></div>
   </div>
+
+  <!-- PIN GATE -->
+  <div class="gate" id="gate">
+    <div class="lock">🔐</div>
+    <h2 data-i="gt">Enter your PIN</h2>
+    <div class="cn" id="g-cn"></div>
+    <p data-i="gp">This passbook is protected. Enter the PIN given to you by the shop.</p>
+    <div class="pinrow"><input id="pin" type="password" inputmode="numeric" autocomplete="off" maxlength="12" placeholder="••••" onkeydown="if(event.key==='Enter')unlock()"></div>
+    <div class="errmsg" id="g-err"></div>
+    <button onclick="unlock()" data-i="gb">🔓 Unlock Passbook</button>
+  </div>
+
+  <!-- PASSBOOK -->
+  <div class="book" id="book"></div>
+
+  <div class="foot" id="foot" style="display:none;"></div>
 </div>
 
 <script>
-// ── LZString (same library used by the main app — needed to decompress the fragment) ──
 var LZString=function(){var r=String.fromCharCode,o="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=",n="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+-$",e={};function t(r,o){if(!e[r]){e[r]={};for(var n=0;n<r.length;n++)e[r][r.charAt(n)]=n}return e[r][o]}var i={compressToBase64:function(r){if(null==r)return"";var n=i._compress(r,6,function(r){return o.charAt(r)});switch(n.length%4){default:case 0:return n;case 1:return n+"===";case 2:return n+"==";case 3:return n+"="}},decompressFromBase64:function(r){return null==r?"":""==r?null:i._decompress(r.length,32,function(n){return t(o,r.charAt(n))})},compressToUTF16:function(o){return null==o?"":i._compress(o,15,function(o){return r(o+32)})+" "},decompressFromUTF16:function(r){return null==r?"":""==r?null:i._decompress(r.length,16384,function(o){return r.charCodeAt(o)-32})},compressToUint8Array:function(r){for(var o=i.compress(r),n=new Uint8Array(2*o.length),e=0,t=o.length;e<t;e++){var s=o.charCodeAt(e);n[2*e]=s>>>8,n[2*e+1]=s%256}return n},decompressFromUint8Array:function(o){if(null==o)return i.decompress(o);for(var n=new Array(o.length/2),e=0,t=n.length;e<t;e++)n[e]=256*o[2*e]+o[2*e+1];var s=[];return n.forEach(function(o){s.push(r(o))}),i.decompress(s.join(""))},compressToEncodedURIComponent:function(r){return null==r?"":i._compress(r,6,function(r){return n.charAt(r)})},decompressFromEncodedURIComponent:function(r){return null==r?"":""==r?null:(r=r.replace(/ /g,"+"),i._decompress(r.length,32,function(o){return t(n,r.charAt(o))}))},compress:function(o){return i._compress(o,16,function(o){return r(o)})},_compress:function(r,o,n){if(null==r)return"";var e,t,i,s={},u={},a="",p="",c="",l=2,f=3,h=2,d=[],m=0,v=0;for(i=0;i<r.length;i+=1)if(a=r.charAt(i),Object.prototype.hasOwnProperty.call(s,a)||(s[a]=f++,u[a]=!0),p=c+a,Object.prototype.hasOwnProperty.call(s,p))c=p;else{if(Object.prototype.hasOwnProperty.call(u,c)){if(c.charCodeAt(0)<256){for(e=0;e<h;e++)m<<=1,v==o-1?(v=0,d.push(n(m)),m=0):v++;for(t=c.charCodeAt(0),e=0;e<8;e++)m=m<<1|1&t,v==o-1?(v=0,d.push(n(m)),m=0):v++,t>>=1}else{for(t=1,e=0;e<h;e++)m=m<<1|t,v==o-1?(v=0,d.push(n(m)),m=0):v++,t=0;for(t=c.charCodeAt(0),e=0;e<16;e++)m=m<<1|1&t,v==o-1?(v=0,d.push(n(m)),m=0):v++,t>>=1}0==--l&&(l=Math.pow(2,h),h++),delete u[c]}else for(t=s[c],e=0;e<h;e++)m=m<<1|1&t,v==o-1?(v=0,d.push(n(m)),m=0):v++,t>>=1;0==--l&&(l=Math.pow(2,h),h++),s[p]=f++,c=String(a)}if(""!==c){if(Object.prototype.hasOwnProperty.call(u,c)){if(c.charCodeAt(0)<256){for(e=0;e<h;e++)m<<=1,v==o-1?(v=0,d.push(n(m)),m=0):v++;for(t=c.charCodeAt(0),e=0;e<8;e++)m=m<<1|1&t,v==o-1?(v=0,d.push(n(m)),m=0):v++,t>>=1}else{for(t=1,e=0;e<h;e++)m=m<<1|t,v==o-1?(v=0,d.push(n(m)),m=0):v++,t=0;for(t=c.charCodeAt(0),e=0;e<16;e++)m=m<<1|1&t,v==o-1?(v=0,d.push(n(m)),m=0):v++,t>>=1}0==--l&&(l=Math.pow(2,h),h++),delete u[c]}else for(t=s[c],e=0;e<h;e++)m=m<<1|1&t,v==o-1?(v=0,d.push(n(m)),m=0):v++,t>>=1;0==--l&&(l=Math.pow(2,h),h++)}for(t=2,e=0;e<h;e++)m=m<<1|1&t,v==o-1?(v=0,d.push(n(m)),m=0):v++,t>>=1;for(;;){if(m<<=1,v==o-1){d.push(n(m));break}v++}return d.join("")},decompress:function(r){return null==r?"":""==r?null:i._decompress(r.length,32768,function(o){return r.charCodeAt(o)})},_decompress:function(o,n,e){var t,i,s,u,a,p,c,l=[],f=4,h=4,d=3,m="",v=[],g={val:e(0),position:n,index:1};for(t=0;t<3;t+=1)l[t]=t;for(s=0,a=Math.pow(2,2),p=1;p!=a;)u=g.val&g.position,g.position>>=1,0==g.position&&(g.position=n,g.val=e(g.index++)),s|=(u>0?1:0)*p,p<<=1;switch(s){case 0:for(s=0,a=Math.pow(2,8),p=1;p!=a;)u=g.val&g.position,g.position>>=1,0==g.position&&(g.position=n,g.val=e(g.index++)),s|=(u>0?1:0)*p,p<<=1;c=r(s);break;case 1:for(s=0,a=Math.pow(2,16),p=1;p!=a;)u=g.val&g.position,g.position>>=1,0==g.position&&(g.position=n,g.val=e(g.index++)),s|=(u>0?1:0)*p,p<<=1;c=r(s);break;case 2:return""}for(l[3]=c,i=c,v.push(c);;){if(g.index>o)return"";for(s=0,a=Math.pow(2,d),p=1;p!=a;)u=g.val&g.position,g.position>>=1,0==g.position&&(g.position=n,g.val=e(g.index++)),s|=(u>0?1:0)*p,p<<=1;switch(c=s){case 0:for(s=0,a=Math.pow(2,8),p=1;p!=a;)u=g.val&g.position,g.position>>=1,0==g.position&&(g.position=n,g.val=e(g.index++)),s|=(u>0?1:0)*p,p<<=1;l[h++]=r(s),c=h-1,f--;break;case 1:for(s=0,a=Math.pow(2,16),p=1;p!=a;)u=g.val&g.position,g.position>>=1,0==g.position&&(g.position=n,g.val=e(g.index++)),s|=(u>0?1:0)*p,p<<=1;l[h++]=r(s),c=h-1,f--;break;case 2:return v.join("")}if(0==f&&(f=Math.pow(2,d),d++),l[c])m=l[c];else{if(c!==h)return null;m=i+i.charAt(0)}v.push(m),l[h++]=i+m.charAt(0),i=m,0==--f&&(f=Math.pow(2,d),d++)}}};return i}();"function"==typeof define&&define.amd?define(function(){return LZString}):"undefined"!=typeof module&&null!=module?module.exports=LZString:"undefined"!=typeof angular&&null!=angular&&angular.module("LZString",[]).factory("LZString",function(){return LZString});
+</script>
+<script>
+'use strict';
+// ═══════════════════════════════════════════════════════════════════════════
+// Customer Passbook Viewer v2 — Sivaji Bank Pawnshop Manager
+// Data arrives compressed in the URL fragment (#...) — nothing is ever sent
+// to any server. PIN gate is a privacy speed-bump, matching the app's model.
+// Supports payload v1 (active pledges only) and v2 (+ payment history,
+// closed pledges, UPI Pay-Now, shop address).
+// ═══════════════════════════════════════════════════════════════════════════
+let P = null;          // decoded payload
+let LANG = localStorage.getItem('pb_lang') || 'en';
 
-// ── State ──────────────────────────────────────────────────────────────────
-var PAYLOAD = null;
-var IS_TAMIL = false;
-var ATTEMPTS = 0;
-var LOCKED_UNTIL = 0;
-var MAX_ATTEMPTS = 5;
-var LOCK_SECONDS = 30;
+const I18N = {
+  live:{en:'Live dues — calculated fresh every time you open this', ta:'நேரடி நிலுவை — ஒவ்வொரு முறையும் புதிதாக கணக்கிடப்படுகிறது'},
+  gt:{en:'Enter your PIN', ta:'உங்கள் PIN-ஐ உள்ளிடவும்'},
+  gp:{en:'This passbook is protected. Enter the PIN given to you by the shop.', ta:'இந்த பாஸ்புக் பாதுகாக்கப்பட்டது. கடையில் வழங்கிய PIN-ஐ உள்ளிடவும்.'},
+  gb:{en:'🔓 Unlock Passbook', ta:'🔓 பாஸ்புக்கைத் திற'},
+  wrong:{en:'Wrong PIN — please try again', ta:'தவறான PIN — மீண்டும் முயற்சிக்கவும்'},
+  active:{en:'Active', ta:'செயலில்'}, duetoday:{en:'Due Today', ta:'இன்று செலுத்த'}, principal:{en:'Principal', ta:'அசல்'},
+  asof:{en:'Data as of', ta:'தரவு தேதி'},
+  stale:{en:'⚠️ This passbook snapshot is #D days old. Recent payments or renewals may not be shown — ask the shop for a fresh link or card.', ta:'⚠️ இந்த பாஸ்புக் தரவு #D நாட்கள் பழையது. சமீபத்திய கட்டணங்கள் காட்டப்படாமல் இருக்கலாம் — புதிய இணைப்பு/கார்டு கேட்கவும்.'},
+  pledged:{en:'Pledged on', ta:'அடகு தேதி'}, duedate:{en:'Due date', ta:'கெடு தேதி'},
+  lastpay:{en:'Last payment', ta:'கடைசி கட்டணம்'}, rate:{en:'Interest rate', ta:'வட்டி விகிதம்'},
+  outp:{en:'Loan balance', ta:'கடன் நிலுவை'}, intnow:{en:'Interest due now', ta:'இப்போதைய வட்டி'},
+  totnow:{en:'Total to close today', ta:'இன்று முடிக்க மொத்தம்'},
+  grace:{en:'Within first 35 days — 1st month interest was collected upfront. Nothing due right now.', ta:'முதல் 35 நாட்களுக்குள் — முதல் மாத வட்டி முன்பே பெறப்பட்டது. இப்போது எதுவும் இல்லை.'},
+  months:{en:'#M month(s) interest pending beyond the upfront first month', ta:'முன்பணம் போக #M மாத வட்டி நிலுவையில் உள்ளது'},
+  overdue:{en:'#D days past due date', ta:'கெடு தேதி கடந்து #D நாட்கள்'},
+  ontrack:{en:'On track', ta:'சரியாக உள்ளது'},
+  paynow:{en:'Pay from your phone', ta:'உங்கள் போனிலிருந்தே செலுத்துங்கள்'},
+  payamt:{en:'Amount ₹', ta:'தொகை ₹'},
+  paynote:{en:'After paying, inform the shop so your receipt is recorded.', ta:'செலுத்திய பின், ரசீது பதிவு செய்ய கடைக்கு தெரிவிக்கவும்.'},
+  hist:{en:'Recent payments', ta:'சமீபத்திய கட்டணங்கள்'},
+  histk:{i:{en:'Interest', ta:'வட்டி'}, p:{en:'Principal', ta:'அசல்'}, m:{en:'Int+Prin', ta:'வட்டி+அசல்'}},
+  closed:{en:'✅ Recently closed pledges', ta:'✅ சமீபத்தில் முடிந்த அடகுகள்'},
+  redeemed:{en:'Redeemed', ta:'மீட்கப்பட்டது'}, foreclosed:{en:'Settled', ta:'முடிக்கப்பட்டது'},
+  call:{en:'📞 Call Shop', ta:'📞 கடையை அழை'},
+  privacy:{en:'Your details live only inside this link — nothing is stored on any server. Keep the link and PIN private.', ta:'உங்கள் விவரங்கள் இந்த இணைப்பில் மட்டுமே உள்ளன — எந்த சர்வரிலும் சேமிக்கப்படவில்லை. இணைப்பையும் PIN-ஐயும் பாதுகாப்பாக வைக்கவும்.'},
+  badlink:{en:'⚠️ This passbook link is incomplete or damaged.<br>Please ask the shop to share it again.', ta:'⚠️ இந்த பாஸ்புக் இணைப்பு முழுமையற்றது.<br>கடையில் மீண்டும் கேட்கவும்.'}
+};
+const T = (k) => (I18N[k] && (I18N[k][LANG] || I18N[k].en)) || k;
 
-function ut(en, ta) { return IS_TAMIL ? (ta || en) : en; }
-
-function fmtRs(v) {
-  v = Math.round(parseFloat(v||0));
-  return '₹' + v.toLocaleString('en-IN');
-}
-function fmtD(d) {
-  if (!d) return '—';
-  var q = d.split('-');
-  if (q.length !== 3) return d;
-  return q[2] + '/' + q[1] + '/' + q[0];
-}
-
-// ── Interest math — mirrors calcInterest()/calcPledgeDue() in the main app ──
-// Month 1 interest is collected upfront at pledge time. Renewal interest is
-// charged only beyond the first 35 days; any partial extra month counts as a
-// full month (ceiling rule). e.g. days 1-35 = 0 due, 36-65 = 1 month, etc.
-function daysBetween(d1, d2) {
-  var a = new Date(d1 + 'T00:00:00'), b = new Date(d2 + 'T00:00:00');
-  return Math.floor((b - a) / 86400000);
-}
-function calcInterest(principal, ratePerMonth, days, type, r2, tier1Months) {
-  type = type || 'simple';
-  if (days <= 35) return 0;
-  var extraDays = days - 35;
-  var extraMonths = Math.ceil(extraDays / 30);
-  var monthly = principal * (ratePerMonth / 100);
-  if (type === 'compound') return principal * (Math.pow(1 + ratePerMonth/100, extraMonths) - 1);
-  if (type === 'tiered') {
-    var rate1 = ratePerMonth, rate2 = r2 || rate1, t1 = tier1Months || 6;
-    var m1 = Math.min(extraMonths, t1), m2 = Math.max(0, extraMonths - t1);
-    return principal*(rate1/100)*m1 + principal*(rate2/100)*m2;
-  }
-  return monthly * extraMonths;
-}
-function today() {
-  var d = new Date();
-  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-}
-function pledgeDue(pl) {
-  var asOf = today();
-  var days = daysBetween(pl.lp || pl.d, asOf);
-  var interest = calcInterest(pl.pr, pl.r, days, pl.ty, pl.r2, pl.tr);
-  return { days: days, interest: interest, total: pl.pr + interest };
+function setLang(l) {
+  LANG = l; localStorage.setItem('pb_lang', l);
+  document.getElementById('lang-en').classList.toggle('on', l==='en');
+  document.getElementById('lang-ta').classList.toggle('on', l==='ta');
+  document.querySelectorAll('[data-i]').forEach(el => { el.innerHTML = T(el.getAttribute('data-i')); });
+  if (document.getElementById('book').style.display === 'block') renderBook();
 }
 
-// ── Boot ───────────────────────────────────────────────────────────────────
-function boot() {
-  var frag = location.hash.replace(/^#/, '');
-  if (!frag) { renderNoData(); return; }
-  try {
-    var json = LZString.decompressFromEncodedURIComponent(frag);
-    PAYLOAD = JSON.parse(json);
-    if (!PAYLOAD || !PAYLOAD.v) throw new Error('bad payload');
-  } catch (e) {
-    renderNoData();
-    return;
-  }
-  renderGate();
-}
+// ── Date & money helpers (mirrors the shop app's exact rules) ──────────────
+const fmtR   = v => '₹' + Math.round(v||0).toLocaleString('en-IN');
+const fmtD   = d => { if(!d) return '—'; const p = d.split('-'); return p[2]+'/'+p[1]+'/'+p[0]; };
+const todayS = () => { const n = new Date(); return n.getFullYear()+'-'+String(n.getMonth()+1).padStart(2,'0')+'-'+String(n.getDate()).padStart(2,'0'); };
+const daysBetween = (d1,d2) => Math.max(0, Math.floor((new Date(d2) - new Date(d1)) / 86400000));
 
-function renderNoData() {
-  document.getElementById('app').innerHTML =
-    '<div class="no-data">' +
-      '<div style="font-size:38px;margin-bottom:10px;">⚠️</div>' +
-      '<div style="font-weight:700;color:#444;margin-bottom:4px;">Link not recognised</div>' +
-      '<div style="font-size:12px;">This link looks incomplete or damaged. Please ask the shop to resend your passbook QR.</div>' +
-    '</div>';
-}
-
-function langToggleHtml() {
-  return '<button class="lang-toggle" onclick="toggleLang()">' + (IS_TAMIL ? 'EN' : 'தமிழ்') + '</button>';
-}
-function toggleLang() {
-  IS_TAMIL = !IS_TAMIL;
-  if (document.getElementById('pin-gate-box')) renderGate();
-  else renderPassbook();
-}
-
-function otpBoxesHtml(n, locked) {
-  var boxes = '';
-  for (var i = 0; i < n; i++) {
-    boxes += '<input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" class="otp-box" id="otp-'+i+'" ' +
-      'data-idx="'+i+'" oninput="otpHandleInput(this)" onkeydown="otpHandleKeydown(event,this)" onpaste="otpHandlePaste(event,this)" ' +
-      (locked?'disabled':'') + '>';
-  }
-  return '<div class="otp-row">' + boxes + '</div>';
-}
-
-function otpLen() {
-  var n = String((PAYLOAD && PAYLOAD.sec) || '').trim().length;
-  return Math.max(4, Math.min(6, n || 4));
-}
-
-function otpHandleInput(el) {
-  var v = (el.value || '').replace(/\D/g,'').slice(0,1);
-  el.value = v;
-  el.classList.remove('pb-shake');
-  if (v) {
-    el.classList.add('filled');
-    try { if (navigator.vibrate) navigator.vibrate(8); } catch(e){}
-    var next = document.getElementById('otp-' + (parseInt(el.dataset.idx,10)+1));
-    if (next) next.focus(); else { el.blur(); maybeAutoUnlock(); }
-  } else {
-    el.classList.remove('filled');
-  }
-}
-
-function otpHandleKeydown(e, el) {
-  var idx = parseInt(el.dataset.idx,10);
-  if (e.key === 'Backspace' && !el.value) {
-    var prev = document.getElementById('otp-'+(idx-1));
-    if (prev) { prev.focus(); prev.value=''; prev.classList.remove('filled'); }
-  } else if (e.key === 'Enter') {
-    tryUnlock();
-  }
-}
-
-function otpHandlePaste(e, el) {
-  e.preventDefault();
-  var text = (e.clipboardData || window.clipboardData).getData('text') || '';
-  var digits = text.replace(/\D/g,'').split('');
-  var startIdx = parseInt(el.dataset.idx,10);
-  for (var i = 0; i < digits.length; i++) {
-    var box = document.getElementById('otp-'+(startIdx+i));
-    if (!box) break;
-    box.value = digits[i];
-    box.classList.add('filled');
-  }
-  var lastBox = document.getElementById('otp-'+Math.min(startIdx+digits.length, otpLen()-1));
-  if (lastBox) lastBox.focus();
-  maybeAutoUnlock();
-}
-
-function otpCollect() {
-  var n = otpLen(), out = '';
-  for (var i = 0; i < n; i++) {
-    var b = document.getElementById('otp-'+i);
-    out += b ? (b.value||'') : '';
-  }
-  return out;
-}
-
-function maybeAutoUnlock() {
-  var n = otpLen();
-  var val = otpCollect();
-  if (val.length === n) tryUnlock();
-}
-
-function renderGate() {
-  var locked = Date.now() < LOCKED_UNTIL;
-  var secsLeft = Math.ceil((LOCKED_UNTIL - Date.now())/1000);
-  document.getElementById('app').innerHTML =
-    '<div class="hdr">' + langToggleHtml() +
-      '<div class="brand">' + esc(IS_TAMIL && PAYLOAD.st ? PAYLOAD.st : (PAYLOAD.sn || 'Pawnshop')) + '</div>' +
-      '<div class="sub">' + ut('Customer Passbook', 'வாடிக்கையாளர் பாஸ்புக்') + '</div>' +
-    '</div>' +
-    '<div class="body">' +
-      '<div class="gate" id="pin-gate-box">' +
-        '<div class="icon">🔒</div>' +
-        '<h2>' + ut('Enter your PIN to view your passbook', 'உங்கள் பாஸ்புக்கைப் பார்க்க PIN உள்ளிடவும்') + '</h2>' +
-        '<p>' + ut('This is the PIN or last 4 digits of your ID proof given to you by the shop.', 'இது கடை வழங்கிய PIN அல்லது உங்கள் அடையாள எண்ணின் கடைசி 4 இலக்கங்கள்.') + '</p>' +
-        otpBoxesHtml(otpLen(), locked) +
-        '<button class="unlock-btn" id="unlock-btn" onclick="tryUnlock()" ' + (locked?'disabled':'') + '>' + ut('Unlock', 'திற') + '</button>' +
-        '<div class="err-msg" id="err-msg"></div>' +
-      '</div>' +
-      (locked ? '<div class="lockout" id="lock-msg">' + ut('Too many attempts. Try again in ', 'பல முயற்சிகள். மீண்டும் முயற்சிக்கவும்: ') + secsLeft + 's</div>' : '') +
-      '<div class="footer-note">' + ut('Your details stay on this page only — nothing is sent anywhere.', 'உங்கள் தகவல்கள் இந்த பக்கத்தில் மட்டுமே உள்ளன — எங்கும் அனுப்பப்படாது.') + '</div>' +
-    '</div>';
-  var f = document.getElementById('otp-0');
-  if (f) f.focus();
-  if (locked) tickLockout();
-}
-
-function tickLockout() {
-  var msEl = document.getElementById('lock-msg');
-  if (!msEl) return;
-  var iv = setInterval(function() {
-    var left = Math.ceil((LOCKED_UNTIL - Date.now())/1000);
-    if (left <= 0) { clearInterval(iv); renderGate(); return; }
-    var el = document.getElementById('lock-msg');
-    if (!el) { clearInterval(iv); return; }
-    el.textContent = ut('Too many attempts. Try again in ', 'பல முயற்சிகள். மீண்டும் முயற்சிக்கவும்: ') + left + 's';
-  }, 1000);
-}
-
-function tryUnlock() {
-  if (Date.now() < LOCKED_UNTIL) return;
-  var val = otpCollect().trim();
-  var expected = String(PAYLOAD.sec || '').trim();
-  if (!val) return;
-  if (expected && val === expected) {
-    ATTEMPTS = 0;
-    try { if (navigator.vibrate) navigator.vibrate([15,40,25]); } catch(e){}
-    var iconBox = document.querySelector('.gate .icon');
-    var btn = document.getElementById('unlock-btn');
-    var boxes = document.querySelectorAll('.otp-box');
-    boxes.forEach(function(b){ b.disabled = true; });
-    if (btn) btn.disabled = true;
-    if (iconBox) {
-      iconBox.outerHTML = '<div class="unlock-ring-wrap">' +
-        '<svg viewBox="0 0 64 64"><circle class="bg" cx="32" cy="32" r="24"/><circle class="fg" cx="32" cy="32" r="24"/></svg>' +
-        '<svg viewBox="0 0 64 64" style="position:absolute;top:0;left:0;transform:none;"><path class="chk" d="M20 33 L29 41 L45 23"/></svg>' +
-      '</div>';
+// Interest rule parity: month 1 collected upfront at pledge; grace to day 35;
+// each further 30-day block (any part) counts as a full month.
+function calcDue(it, asOf) {
+  const days = daysBetween(it.lp || it.d, asOf);
+  let interest = 0, em = 0;
+  if (days > 35) {
+    em = Math.ceil((days - 35) / 30);
+    const r = it.r || 0, pr = it.pr || 0;
+    if (it.ty === 'compound') {
+      interest = pr * (Math.pow(1 + r/100, em) - 1);
+    } else if (it.ty === 'tiered') {
+      const t = it.tr || 6, r2 = it.r2 || r;
+      const m1 = Math.min(em, t), m2 = Math.max(0, em - t);
+      interest = pr * (r/100) * m1 + pr * (r2/100) * m2;
+    } else {
+      interest = pr * (r/100) * em;
     }
-    var box = document.getElementById('pin-gate-box');
-    setTimeout(function() {
-      if (box) box.style.animation = 'pb-fade-out .2s ease forwards';
-      setTimeout(renderPassbook, 180);
-    }, 700);
-    return;
   }
-  ATTEMPTS++;
-  try { if (navigator.vibrate) navigator.vibrate(60); } catch(e){}
-  var errEl = document.getElementById('err-msg');
-  var boxes = document.querySelectorAll('.otp-box');
-  boxes.forEach(function(b){
-    b.classList.remove('pb-shake');
-    void b.offsetWidth;
-    b.classList.add('pb-shake');
+  return { days, extraMonths: em, interest, total: (it.pr||0) + interest };
+}
+
+function upiLink(scheme, amt, bill) {
+  const q = 'pa=' + encodeURIComponent(P.upi.pa)
+          + '&pn=' + encodeURIComponent(P.upi.pn || P.sn || '')
+          + (amt > 0 ? '&am=' + encodeURIComponent(amt.toFixed(2)) : '')
+          + '&cu=INR&tn=' + encodeURIComponent(('Pledge '+bill+' payment').slice(0,50));
+  if (scheme === 'gpay')    return 'tez://upi/pay?' + q;
+  if (scheme === 'phonepe') return 'phonepe://pay?' + q;
+  if (scheme === 'paytm')   return 'paytmmp://pay?' + q;
+  return 'upi://pay?' + q;
+}
+function payAmtChanged(idx) {
+  const v = parseFloat(document.getElementById('pay-amt-'+idx).value) || 0;
+  const it = P.p[idx];
+  ['gpay','phonepe','paytm','upi'].forEach(s => {
+    const a = document.getElementById('pay-'+s+'-'+idx);
+    if (a) a.href = upiLink(s, v, it.b);
   });
-  if (ATTEMPTS >= MAX_ATTEMPTS) {
-    LOCKED_UNTIL = Date.now() + LOCK_SECONDS*1000;
-    setTimeout(renderGate, 280);
+}
+
+// ── Boot: decode fragment ───────────────────────────────────────────────────
+(function boot(){
+  try {
+    const frag = location.hash.replace(/^#/, '');
+    if (!frag) throw 0;
+    P = JSON.parse(LZString.decompressFromEncodedURIComponent(frag));
+    if (!P || !Array.isArray(P.p)) throw 0;
+  } catch(e) {
+    document.getElementById('gate').outerHTML = '<div class="badlink" data-i="badlink">'+T('badlink')+'</div>';
+    document.querySelector('.langbar').style.display='none';
     return;
   }
-  if (errEl) errEl.textContent = ut('Incorrect PIN. ', 'தவறான PIN. ') + (MAX_ATTEMPTS-ATTEMPTS) + ' ' + ut('attempts left.', 'முயற்சிகள் மீதம்.');
-  setTimeout(function() {
-    boxes.forEach(function(b){ b.value=''; b.classList.remove('filled'); b.classList.remove('pb-shake'); });
-    var first = document.getElementById('otp-0');
-    if (first) first.focus();
-  }, 350);
-}
+  document.getElementById('h-shop').textContent = '📘 ' + (P.sn || 'Passbook');
+  if (P.st) { const e = document.getElementById('h-shopta'); e.textContent = P.st; e.style.display='block'; }
+  document.getElementById('g-cn').textContent = P.cn || '';
+  setLang(LANG);
+  setTimeout(()=>document.getElementById('pin').focus(), 300);
+})();
 
-function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-
-function initialsOf(name) {
-  return String(name||'?').trim().split(/\s+/).slice(0,2).map(function(w){return w[0];}).join('').toUpperCase() || '?';
-}
-
-function animateCountUp(el, target, duration) {
-  if (!el) return;
-  duration = duration || 700;
-  var startTime = null;
-  function ease(t) { return 1 - Math.pow(1 - t, 3); } // ease-out cubic
-  function step(ts) {
-    if (!startTime) startTime = ts;
-    var progress = Math.min(1, (ts - startTime) / duration);
-    var current = target * ease(progress);
-    el.textContent = fmtRs(current);
-    if (progress < 1) requestAnimationFrame(step);
-    else el.textContent = fmtRs(target);
+function unlock() {
+  const gate = document.getElementById('gate');
+  const val = (document.getElementById('pin').value || '').trim();
+  if (!P) return;
+  if (val !== String(P.sec||'')) {
+    gate.classList.remove('err'); void gate.offsetWidth; gate.classList.add('err');
+    document.getElementById('g-err').textContent = T('wrong');
+    return;
   }
-  requestAnimationFrame(step);
+  gate.style.display = 'none';
+  document.getElementById('book').style.display = 'block';
+  document.getElementById('foot').style.display = 'block';
+  renderBook();
 }
 
-function renderPassbook() {
-  var pledges = PAYLOAD.p || [];
-  var totalOutstanding = 0;
-  var cardsHtml = pledges.map(function(pl, idx) {
-    var due = pledgeDue(pl);
-    totalOutstanding += due.total;
-    var overdueDays = daysBetween(pl.dd, today()); // positive once due date is in the past
-    var badge, badgeClass;
-    if (overdueDays > 0) { badgeClass='overdue'; badge = ut('Overdue '+overdueDays+'d','தாமதம் '+overdueDays+'நா'); }
-    else if (overdueDays === 0) { badgeClass='due'; badge = ut('Due today','இன்று செலுத்த வேண்டும்'); }
-    else { badgeClass='ok'; badge = ut('Active','செயலில்'); }
-    return '<div class="pledge-card" style="animation-delay:' + (.12 + idx*.07) + 's;">' +
-      '<div class="pledge-top">' +
-        '<div><div class="pledge-no">' + esc(pl.b) + '</div>' +
-        '<div class="pledge-item">' + esc(pl.it || '—') + '</div></div>' +
-        '<span class="badge ' + badgeClass + '">' + badge + '</span>' +
-      '</div>' +
-      '<div class="row"><span>' + ut('Pledged on','அடகு வைத்த தேதி') + '</span><b>' + fmtD(pl.d) + '</b></div>' +
-      '<div class="row"><span>' + ut('Due date','செலுத்த வேண்டிய தேதி') + '</span><b>' + fmtD(pl.dd) + '</b></div>' +
-      '<div class="row"><span>' + ut('Outstanding principal','நிலுவையில் உள்ள அசல்') + '</span><b>' + fmtRs(pl.pr) + '</b></div>' +
-      '<div class="row"><span>' + ut('Accrued interest (today)','இன்று வரை வட்டி') + '</span><b>' + fmtRs(due.interest) + '</b></div>' +
-      '<div class="row total"><span>' + ut('Total payable now','இப்போது செலுத்த வேண்டியது') + '</span><b>' + fmtRs(due.total) + '</b></div>' +
-    '</div>';
-  }).join('') || '<div class="empty-state">' + ut('No active pledges on record.','செயலில் உள்ள அடகுகள் இல்லை.') + '</div>';
+function renderBook() {
+  const asOf = todayS();
+  const book = document.getElementById('book');
+  const dues = P.p.map(it => calcDue(it, asOf));
+  const totPr  = P.p.reduce((s,it) => s + (it.pr||0), 0);
+  const totDue = dues.reduce((s,d) => s + d.total, 0);
+  const initials = (P.cn||'?').trim().split(/\s+/).slice(0,2).map(w=>w[0]).join('').toUpperCase() || '?';
+  const genAge = daysBetween(P.gen || asOf, asOf);
 
-  document.getElementById('app').innerHTML =
-    '<div class="hdr">' + langToggleHtml() +
-      '<div class="brand">' + esc(IS_TAMIL && PAYLOAD.st ? PAYLOAD.st : (PAYLOAD.sn || 'Pawnshop')) + '</div>' +
-      '<div class="sub">' + ut('Customer Passbook', 'வாடிக்கையாளர் பாஸ்புக்') + '</div>' +
-    '</div>' +
-    '<div class="body">' +
-      '<div class="pb-header-row">' +
-        '<div class="pb-avatar">' + esc(initialsOf(PAYLOAD.cn)) + '</div>' +
-        '<div><div class="pb-cust">' + esc(PAYLOAD.cn) + '</div>' +
-        '<div class="pb-asof">' + ut('Snapshot generated on','தரவு உருவாக்கப்பட்ட தேதி') + ' ' + fmtD(PAYLOAD.gen) + '</div></div>' +
-      '</div>' +
-      '<div class="summary">' +
-        '<div><div class="lbl">' + ut('Total Payable Today','இன்று செலுத்த வேண்டிய மொத்தம்') + '</div><div class="val countup-val" id="countup-target">₹0</div></div>' +
-        '<div style="font-size:26px;">📘</div>' +
-      '</div>' +
-      '<div class="warn-strip">⚠️ ' + ut('Principal figures are as of the snapshot date above. If you made a payment after that date, the figures here may not reflect it yet — please confirm with the shop.','மேலே உள்ள தேதி வரை உள்ள தரவு இது. அதற்குப் பின் பணம் செலுத்தியிருந்தால், இங்குள்ள தொகை புதுப்பிக்கப்படாமல் இருக்கலாம் — கடையில் உறுதி செய்யவும்.') + '</div>' +
-      cardsHtml +
-    '</div>' +
-    '<div class="shop-foot">' +
-      (PAYLOAD.sp ? ('📞 ' + ut('Contact','தொடர்பு') + ': <b>' + esc(PAYLOAD.sp) + '</b>') : '') +
-    '</div>';
+  let h = `
+    <div class="sumcard">
+      <div class="who">
+        <div class="av">${initials}</div>
+        <div><div class="nm">${esc(P.cn)}</div><div class="asof">${T('asof')}: ${fmtD(P.gen)} · ${fmtD(asOf)}</div></div>
+      </div>
+      <div class="sumgrid">
+        <div class="cell"><div class="v">${P.p.length}</div><div class="l">${T('active')}</div></div>
+        <div class="cell"><div class="v">${fmtR(totDue)}</div><div class="l">${T('duetoday')}</div></div>
+        <div class="cell"><div class="v">${fmtR(totPr)}</div><div class="l">${T('principal')}</div></div>
+      </div>
+    </div>`;
 
-  animateCountUp(document.getElementById('countup-target'), totalOutstanding, 700);
+  if (genAge > 7) h += `<div class="stale">${T('stale').replace('#D', genAge)}</div>`;
+
+  P.p.forEach((it, i) => {
+    const d = dues[i];
+    const overdueDays = it.dd ? daysBetween(it.dd, asOf) : 0;
+    const isOver = it.dd && asOf > it.dd;
+    h += `
+    <div class="pcard" style="animation-delay:${(i*0.07).toFixed(2)}s">
+      <div class="top">
+        <div><div class="bill">BILL ${esc(it.b)}</div><div class="item">${esc(it.it)||'—'}</div></div>
+        ${isOver ? `<span class="badge due">⏰ ${T('overdue').replace('#D', overdueDays)}</span>` : `<span class="badge ok">✓ ${T('ontrack')}</span>`}
+      </div>
+      <div class="kv">
+        <div><div class="k">${T('pledged')}</div><div class="v">${fmtD(it.d)}</div></div>
+        <div><div class="k">${T('duedate')}</div><div class="v">${fmtD(it.dd)}</div></div>
+        <div><div class="k">${T('lastpay')}</div><div class="v">${fmtD(it.lp)}</div></div>
+        <div><div class="k">${T('rate')}</div><div class="v">${it.r}%${it.ty==='tiered'?' → '+(it.r2||it.r)+'%':''}${it.ty==='compound'?' (comp.)':''}</div></div>
+        <div><div class="k">${T('outp')}</div><div class="v">${fmtR(it.pr)}</div></div>
+        <div><div class="k">${T('intnow')}</div><div class="v" style="color:${d.interest>0?'#C0392B':'#1A7A3C'};">${fmtR(d.interest)}</div></div>
+      </div>
+      ${d.interest > 0
+        ? `<div class="duebar"><span class="l">${T('totnow')}</span><span class="v">${fmtR(d.total)}</span></div>
+           <div class="mnote">${T('months').replace('#M', d.extraMonths)}</div>`
+        : `<div class="duebar zero"><span class="l">${T('grace')}</span><span class="v">✓</span></div>`}
+      ${P.upi && P.upi.pa ? payBlock(i, it, d) : ''}
+      ${it.pm && it.pm.length ? histBlock(it) : ''}
+    </div>`;
+  });
+
+  if (P.cl && P.cl.length) {
+    h += `<div class="sect-title">${T('closed')}</div>`;
+    P.cl.forEach((c, i) => {
+      h += `<div class="ccard" style="animation-delay:${(i*0.06).toFixed(2)}s">
+        <div class="ci"><div class="cb">BILL ${esc(c.b)} · ${fmtR(c.a)}</div>
+        <div class="cn2">${esc(c.it)||'—'}</div>
+        <div class="cd">${fmtD(c.d)} → ${fmtD(c.cd)}</div></div>
+        <span class="cst${c.fc?' fc':''}">${c.fc ? T('foreclosed') : T('redeemed')}</span>
+      </div>`;
+    });
+  }
+  book.innerHTML = h;
+
+  // footer
+  let f = '';
+  if (P.sp) f += `<a class="callbtn" href="tel:${esc(P.sp).replace(/[^\d+]/g,'')}">${T('call')} · ${esc(P.sp)}</a>`;
+  if (P.ad) f += `<div class="addr">📍 ${esc(P.ad)}</div>`;
+  f += `<div class="note">🔒 ${T('privacy')}</div>`;
+  document.getElementById('foot').innerHTML = f;
 }
 
-boot();
+function payBlock(i, it, d) {
+  const def = d.interest > 0 ? Math.round(d.interest) : '';
+  return `
+  <div class="payrow">
+    <div class="pl">📲 ${T('paynow')}</div>
+    <div class="payamt"><span>${T('payamt')}</span><input id="pay-amt-${i}" type="number" inputmode="numeric" min="1" value="${def}" oninput="payAmtChanged(${i})"></div>
+    <div class="paybtns">
+      <a id="pay-gpay-${i}"    class="gp" href="${upiLink('gpay',    def||0, it.b)}">GPay</a>
+      <a id="pay-phonepe-${i}" class="pp" href="${upiLink('phonepe', def||0, it.b)}">PhonePe</a>
+      <a id="pay-paytm-${i}"   class="pt" href="${upiLink('paytm',   def||0, it.b)}">Paytm</a>
+      <a id="pay-upi-${i}"     class="up" href="${upiLink('upi',     def||0, it.b)}">UPI</a>
+    </div>
+    <div class="mnote" style="margin:7px 0 0;">${T('paynote')}</div>
+  </div>`;
+}
+
+function histBlock(it) {
+  const rows = it.pm.map(p => `<tr><td>${fmtD(p[0])}</td><td><span class="hk">${(I18N.histk[p[2]]&&(I18N.histk[p[2]][LANG]||I18N.histk[p[2]].en))||''}</span></td><td>${fmtR(p[1])}</td></tr>`).join('');
+  return `<details class="hist"><summary>🧾 ${T('hist')} (${it.pm.length})</summary><table>${rows}</table></details>`;
+}
+
+function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 </script>
 </body>
 </html>
