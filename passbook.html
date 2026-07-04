@@ -5,9 +5,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 <meta name="robots" content="noindex, nofollow">
-<meta http-equiv="Cache-Control" content="no-cache, must-revalidate">
-<meta http-equiv="Pragma" content="no-cache">
-<!-- PASSBOOK VIEWER v3 — tiered boundary fix included -->
 <title>📘 Customer Passbook</title>
 <style>
   :root{
@@ -222,9 +219,7 @@ function calcDue(it, asOf) {
     if (it.ty === 'compound') {
       interest = pr * (Math.pow(1 + r/100, em) - 1);
     } else if (it.ty === 'tiered') {
-      // Month 1 is prepaid at rate1, so tier 1 covers only itier−1 EXTRA months
-      // (calendar months 2..itier) — mirrors the shop app's engine exactly.
-      const t = Math.max(0, (it.tr || 6) - 1), r2 = it.r2 || r;
+      const t = it.tr || 6, r2 = it.r2 || r;
       const m1 = Math.min(em, t), m2 = Math.max(0, em - t);
       interest = pr * (r/100) * m1 + pr * (r2/100) * m2;
     } else {
@@ -355,7 +350,7 @@ function renderBook() {
   let f = '';
   if (P.sp) f += `<a class="callbtn" href="tel:${esc(P.sp).replace(/[^\d+]/g,'')}">${T('call')} · ${esc(P.sp)}</a>`;
   if (P.ad) f += `<div class="addr">📍 ${esc(P.ad)}</div>`;
-  f += `<div class="note">🔒 ${T('privacy')}<br><span style="opacity:.55;">viewer v3</span></div>`;
+  f += `<div class="note">🔒 ${T('privacy')}</div>`;
   document.getElementById('foot').innerHTML = f;
 }
 
