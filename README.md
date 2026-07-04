@@ -219,7 +219,9 @@ function calcDue(it, asOf) {
     if (it.ty === 'compound') {
       interest = pr * (Math.pow(1 + r/100, em) - 1);
     } else if (it.ty === 'tiered') {
-      const t = it.tr || 6, r2 = it.r2 || r;
+      // Month 1 is prepaid at rate1, so tier 1 covers only itier−1 EXTRA months
+      // (calendar months 2..itier) — mirrors the shop app's engine exactly.
+      const t = Math.max(0, (it.tr || 6) - 1), r2 = it.r2 || r;
       const m1 = Math.min(em, t), m2 = Math.max(0, em - t);
       interest = pr * (r/100) * m1 + pr * (r2/100) * m2;
     } else {
