@@ -7,7 +7,7 @@
 <meta name="robots" content="noindex, nofollow">
 <meta http-equiv="Cache-Control" content="no-cache, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
-<!-- PASSBOOK VIEWER v4 — tier counts chargeable months (shop rule) -->
+<!-- PASSBOOK VIEWER v5 — shows elapsed months+days instead of interest rate -->
 <title>📘 Customer Passbook</title>
 <style>
   :root{
@@ -179,6 +179,7 @@ const I18N = {
   pledged:{en:'Pledged on', ta:'அடகு தேதி'}, duedate:{en:'Due date', ta:'கெடு தேதி'},
   lastpay:{en:'Last payment', ta:'கடைசி கட்டணம்'}, rate:{en:'Interest rate', ta:'வட்டி விகிதம்'},
   outp:{en:'Loan balance', ta:'கடன் நிலுவை'}, intnow:{en:'Interest due now', ta:'இப்போதைய வட்டி'},
+  elapsed:{en:'Time elapsed', ta:'கடந்த காலம்'}, emo:{en:'month', ta:'மாதம்'}, emos:{en:'months', ta:'மாதம்'}, edy:{en:'day', ta:'நாள்'}, edys:{en:'days', ta:'நாள்'},
   totnow:{en:'Total to close today', ta:'இன்று முடிக்க மொத்தம்'},
   grace:{en:'Within first 35 days — 1st month interest was collected upfront. Nothing due right now.', ta:'முதல் 35 நாட்களுக்குள் — முதல் மாத வட்டி முன்பே பெறப்பட்டது. இப்போது எதுவும் இல்லை.'},
   months:{en:'#M month(s) interest pending beyond the upfront first month', ta:'முன்பணம் போக #M மாத வட்டி நிலுவையில் உள்ளது'},
@@ -210,6 +211,25 @@ const fmtR   = v => '₹' + Math.round(v||0).toLocaleString('en-IN');
 const fmtD   = d => { if(!d) return '—'; const p = d.split('-'); return p[2]+'/'+p[1]+'/'+p[0]; };
 const todayS = () => { const n = new Date(); return n.getFullYear()+'-'+String(n.getMonth()+1).padStart(2,'0')+'-'+String(n.getDate()).padStart(2,'0'); };
 const daysBetween = (d1,d2) => Math.max(0, Math.floor((new Date(d2) - new Date(d1)) / 86400000));
+
+// Elapsed time since pledge, in calendar months + leftover days
+function elapsedMD(from, to) {
+  const a = new Date(from + 'T00:00:00'), b = new Date(to + 'T00:00:00');
+  if (isNaN(a) || isNaN(b) || b < a) return { m: 0, d: 0 };
+  let m = (b.getFullYear() - a.getFullYear()) * 12 + (b.getMonth() - a.getMonth());
+  let anchor = new Date(a); anchor.setMonth(a.getMonth() + m);
+  if (anchor > b) { m--; anchor = new Date(a); anchor.setMonth(a.getMonth() + m); }
+  const d = Math.round((b - anchor) / 86400000);
+  return { m: Math.max(0, m), d: Math.max(0, d) };
+}
+function fmtElapsed(from, to) {
+  const e = elapsedMD(from, to);
+  const mTxt = e.m + ' ' + T(e.m === 1 ? 'emo' : 'emos');
+  const dTxt = e.d + ' ' + T(e.d === 1 ? 'edy' : 'edys');
+  if (e.m === 0) return dTxt;
+  if (e.d === 0) return mTxt;
+  return mTxt + ' ' + dTxt;
+}
 
 // Interest rule parity: month 1 collected upfront at pledge; grace to day 35;
 // each further 30-day block (any part) counts as a full month.
@@ -325,7 +345,7 @@ function renderBook() {
         <div><div class="k">${T('pledged')}</div><div class="v">${fmtD(it.d)}</div></div>
         <div><div class="k">${T('duedate')}</div><div class="v">${fmtD(it.dd)}</div></div>
         <div><div class="k">${T('lastpay')}</div><div class="v">${fmtD(it.lp)}</div></div>
-        <div><div class="k">${T('rate')}</div><div class="v">${it.r}%${it.ty==='tiered'?' → '+(it.r2||it.r)+'%':''}${it.ty==='compound'?' (comp.)':''}</div></div>
+        <div><div class="k">${T('elapsed')}</div><div class="v" style="color:#1A4A8C;">⏱ ${fmtElapsed(it.d, asOf)}</div></div>
         <div><div class="k">${T('outp')}</div><div class="v">${fmtR(it.pr)}</div></div>
         <div><div class="k">${T('intnow')}</div><div class="v" style="color:${d.interest>0?'#C0392B':'#1A7A3C'};">${fmtR(d.interest)}</div></div>
       </div>
@@ -355,7 +375,7 @@ function renderBook() {
   let f = '';
   if (P.sp) f += `<a class="callbtn" href="tel:${esc(P.sp).replace(/[^\d+]/g,'')}">${T('call')} · ${esc(P.sp)}</a>`;
   if (P.ad) f += `<div class="addr">📍 ${esc(P.ad)}</div>`;
-  f += `<div class="note">🔒 ${T('privacy')}<br><span style="opacity:.55;">viewer v4</span></div>`;
+  f += `<div class="note">🔒 ${T('privacy')}<br><span style="opacity:.55;">viewer v5</span></div>`;
   document.getElementById('foot').innerHTML = f;
 }
 
