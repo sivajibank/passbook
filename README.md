@@ -7,7 +7,7 @@
 <meta name="robots" content="noindex, nofollow">
 <meta http-equiv="Cache-Control" content="no-cache, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
-<!-- PASSBOOK VIEWER v5 — shows elapsed months+days instead of interest rate -->
+<!-- PASSBOOK VIEWER v6 — elapsed months+days plus total day count -->
 <title>📘 Customer Passbook</title>
 <style>
   :root{
@@ -179,7 +179,7 @@ const I18N = {
   pledged:{en:'Pledged on', ta:'அடகு தேதி'}, duedate:{en:'Due date', ta:'கெடு தேதி'},
   lastpay:{en:'Last payment', ta:'கடைசி கட்டணம்'}, rate:{en:'Interest rate', ta:'வட்டி விகிதம்'},
   outp:{en:'Loan balance', ta:'கடன் நிலுவை'}, intnow:{en:'Interest due now', ta:'இப்போதைய வட்டி'},
-  elapsed:{en:'Time elapsed', ta:'கடந்த காலம்'}, emo:{en:'month', ta:'மாதம்'}, emos:{en:'months', ta:'மாதம்'}, edy:{en:'day', ta:'நாள்'}, edys:{en:'days', ta:'நாள்'},
+  elapsed:{en:'Time elapsed', ta:'கடந்த காலம்'}, etot:{en:'days total', ta:'மொத்த நாட்கள்'}, emo:{en:'month', ta:'மாதம்'}, emos:{en:'months', ta:'மாதம்'}, edy:{en:'day', ta:'நாள்'}, edys:{en:'days', ta:'நாள்'},
   totnow:{en:'Total to close today', ta:'இன்று முடிக்க மொத்தம்'},
   grace:{en:'Within first 35 days — 1st month interest was collected upfront. Nothing due right now.', ta:'முதல் 35 நாட்களுக்குள் — முதல் மாத வட்டி முன்பே பெறப்பட்டது. இப்போது எதுவும் இல்லை.'},
   months:{en:'#M month(s) interest pending beyond the upfront first month', ta:'முன்பணம் போக #M மாத வட்டி நிலுவையில் உள்ளது'},
@@ -345,7 +345,7 @@ function renderBook() {
         <div><div class="k">${T('pledged')}</div><div class="v">${fmtD(it.d)}</div></div>
         <div><div class="k">${T('duedate')}</div><div class="v">${fmtD(it.dd)}</div></div>
         <div><div class="k">${T('lastpay')}</div><div class="v">${fmtD(it.lp)}</div></div>
-        <div><div class="k">${T('elapsed')}</div><div class="v" style="color:#1A4A8C;">⏱ ${fmtElapsed(it.d, asOf)}</div></div>
+        <div><div class="k">${T('elapsed')}</div><div class="v" style="color:#1A4A8C;">⏱ ${fmtElapsed(it.d, asOf)}<br><span style="font-size:9.5px;color:#8A7350;font-weight:700;">= ${daysBetween(it.d, asOf)} ${T('etot')}</span></div></div>
         <div><div class="k">${T('outp')}</div><div class="v">${fmtR(it.pr)}</div></div>
         <div><div class="k">${T('intnow')}</div><div class="v" style="color:${d.interest>0?'#C0392B':'#1A7A3C'};">${fmtR(d.interest)}</div></div>
       </div>
@@ -375,7 +375,7 @@ function renderBook() {
   let f = '';
   if (P.sp) f += `<a class="callbtn" href="tel:${esc(P.sp).replace(/[^\d+]/g,'')}">${T('call')} · ${esc(P.sp)}</a>`;
   if (P.ad) f += `<div class="addr">📍 ${esc(P.ad)}</div>`;
-  f += `<div class="note">🔒 ${T('privacy')}<br><span style="opacity:.55;">viewer v5</span></div>`;
+  f += `<div class="note">🔒 ${T('privacy')}<br><span style="opacity:.55;">viewer v6</span></div>`;
   document.getElementById('foot').innerHTML = f;
 }
 
