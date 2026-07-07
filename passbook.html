@@ -7,7 +7,7 @@
 <meta name="robots" content="noindex, nofollow">
 <meta http-equiv="Cache-Control" content="no-cache, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
-<!-- PASSBOOK VIEWER v7 — hides pledges older than 450 days -->
+<!-- PASSBOOK VIEWER v8 — pay field prefills total-to-close; hides pledges >450 days -->
 <title>📘 Customer Passbook</title>
 <style>
   :root{
@@ -186,6 +186,7 @@ const I18N = {
   overdue:{en:'#D days past due date', ta:'கெடு தேதி கடந்து #D நாட்கள்'},
   ontrack:{en:'On track', ta:'சரியாக உள்ளது'},
   paynow:{en:'Pay from your phone', ta:'உங்கள் போனிலிருந்தே செலுத்துங்கள்'},
+  payhint:{en:'Prefilled with total to close today — you can edit the amount', ta:'இன்று முடிக்க மொத்தத் தொகை நிரப்பப்பட்டுள்ளது — தொகையை மாற்றலாம்'},
   payamt:{en:'Amount ₹', ta:'தொகை ₹'},
   paynote:{en:'After paying, inform the shop so your receipt is recorded.', ta:'செலுத்திய பின், ரசீது பதிவு செய்ய கடைக்கு தெரிவிக்கவும்.'},
   hist:{en:'Recent payments', ta:'சமீபத்திய கட்டணங்கள்'},
@@ -379,16 +380,18 @@ function renderBook() {
   let f = '';
   if (P.sp) f += `<a class="callbtn" href="tel:${esc(P.sp).replace(/[^\d+]/g,'')}">${T('call')} · ${esc(P.sp)}</a>`;
   if (P.ad) f += `<div class="addr">📍 ${esc(P.ad)}</div>`;
-  f += `<div class="note">🔒 ${T('privacy')}<br><span style="opacity:.55;">viewer v7</span></div>`;
+  f += `<div class="note">🔒 ${T('privacy')}<br><span style="opacity:.55;">viewer v8</span></div>`;
   document.getElementById('foot').innerHTML = f;
 }
 
 function payBlock(i, it, d) {
-  const def = d.interest > 0 ? Math.round(d.interest) : '';
+  // Default = Total to close today (principal + interest). Field stays editable.
+  const def = d.interest > 0 ? Math.round(d.total) : '';
   return `
   <div class="payrow">
     <div class="pl">📲 ${T('paynow')}</div>
     <div class="payamt"><span>${T('payamt')}</span><input id="pay-amt-${i}" type="number" inputmode="numeric" min="1" value="${def}" oninput="payAmtChanged(${i})"></div>
+    ${def !== '' ? `<div class="mnote" style="margin:0 0 7px;">💡 ${T('payhint')}</div>` : ''}
     <div class="paybtns">
       <a id="pay-gpay-${i}"    class="gp" href="${upiLink('gpay',    def||0, it.b)}">GPay</a>
       <a id="pay-phonepe-${i}" class="pp" href="${upiLink('phonepe', def||0, it.b)}">PhonePe</a>
