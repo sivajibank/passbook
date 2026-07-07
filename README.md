@@ -7,7 +7,7 @@
 <meta name="robots" content="noindex, nofollow">
 <meta http-equiv="Cache-Control" content="no-cache, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
-<!-- PASSBOOK VIEWER v6 — elapsed months+days plus total day count -->
+<!-- PASSBOOK VIEWER v7 — hides pledges older than 450 days -->
 <title>📘 Customer Passbook</title>
 <style>
   :root{
@@ -309,6 +309,10 @@ function unlock() {
 
 function renderBook() {
   const asOf = todayS();
+  // Silently omit pledges older than 450 days (from pledge date). Recomputed on
+  // every open, so a pledge that crosses the limit after the QR was printed
+  // disappears automatically. Idempotent — safe on language-toggle re-render.
+  P.p = (P.p || []).filter(it => !it.d || daysBetween(it.d, asOf) <= 450);
   const book = document.getElementById('book');
   const dues = P.p.map(it => calcDue(it, asOf));
   const totPr  = P.p.reduce((s,it) => s + (it.pr||0), 0);
@@ -375,7 +379,7 @@ function renderBook() {
   let f = '';
   if (P.sp) f += `<a class="callbtn" href="tel:${esc(P.sp).replace(/[^\d+]/g,'')}">${T('call')} · ${esc(P.sp)}</a>`;
   if (P.ad) f += `<div class="addr">📍 ${esc(P.ad)}</div>`;
-  f += `<div class="note">🔒 ${T('privacy')}<br><span style="opacity:.55;">viewer v6</span></div>`;
+  f += `<div class="note">🔒 ${T('privacy')}<br><span style="opacity:.55;">viewer v7</span></div>`;
   document.getElementById('foot').innerHTML = f;
 }
 
