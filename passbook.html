@@ -7,7 +7,7 @@
 <meta name="robots" content="noindex, nofollow">
 <meta http-equiv="Cache-Control" content="no-cache, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
-<!-- PASSBOOK VIEWER v8 — pay field prefills total-to-close; hides pledges >450 days -->
+<!-- PASSBOOK VIEWER v9 — adds "I have paid" UTR confirmation via WhatsApp to shop -->
 <title>📘 Customer Passbook</title>
 <style>
   :root{
@@ -189,6 +189,10 @@ const I18N = {
   payhint:{en:'Prefilled with total to close today — you can edit the amount', ta:'இன்று முடிக்க மொத்தத் தொகை நிரப்பப்பட்டுள்ளது — தொகையை மாற்றலாம்'},
   payamt:{en:'Amount ₹', ta:'தொகை ₹'},
   paynote:{en:'After paying, inform the shop so your receipt is recorded.', ta:'செலுத்திய பின், ரசீது பதிவு செய்ய கடைக்கு தெரிவிக்கவும்.'},
+  cfT:{en:'✅ Already paid? Confirm to the shop', ta:'✅ செலுத்திவிட்டீர்களா? கடைக்கு உறுதிப்படுத்தவும்'},
+  cfU:{en:'UTR / Reference no. (from your payment app)', ta:'UTR / குறிப்பு எண் (உங்கள் பேமெண்ட் ஆப்பில் இருந்து)'},
+  cfB:{en:'📤 Send confirmation on WhatsApp', ta:'📤 வாட்ஸ்அப்பில் உறுதிப்படுத்து'},
+  cfErr:{en:'Please enter the amount you paid', ta:'செலுத்திய தொகையை உள்ளிடவும்'},
   hist:{en:'Recent payments', ta:'சமீபத்திய கட்டணங்கள்'},
   histk:{i:{en:'Interest', ta:'வட்டி'}, p:{en:'Principal', ta:'அசல்'}, m:{en:'Int+Prin', ta:'வட்டி+அசல்'}},
   closed:{en:'✅ Recently closed pledges', ta:'✅ சமீபத்தில் முடிந்த அடகுகள்'},
@@ -380,7 +384,7 @@ function renderBook() {
   let f = '';
   if (P.sp) f += `<a class="callbtn" href="tel:${esc(P.sp).replace(/[^\d+]/g,'')}">${T('call')} · ${esc(P.sp)}</a>`;
   if (P.ad) f += `<div class="addr">📍 ${esc(P.ad)}</div>`;
-  f += `<div class="note">🔒 ${T('privacy')}<br><span style="opacity:.55;">viewer v8</span></div>`;
+  f += `<div class="note">🔒 ${T('privacy')}<br><span style="opacity:.55;">viewer v9</span></div>`;
   document.getElementById('foot').innerHTML = f;
 }
 
@@ -399,7 +403,41 @@ function payBlock(i, it, d) {
       <a id="pay-upi-${i}"     class="up" href="${upiLink('upi',     def||0, it.b)}">UPI</a>
     </div>
     <div class="mnote" style="margin:7px 0 0;">${T('paynote')}</div>
+    ${P.sp ? `
+    <div style="border-top:1px dashed #E4D8B8;margin-top:10px;padding-top:9px;">
+      <div class="pl">${T('cfT')}</div>
+      <input id="utr-${i}" type="text" autocomplete="off" maxlength="40" placeholder="${T('cfU')}"
+        style="width:100%;padding:8px 10px;border:1.5px solid #E4D8B8;border-radius:9px;font-size:12px;font-weight:700;color:#2C1F0A;background:#FFFDF4;outline:none;margin-bottom:7px;box-sizing:border-box;">
+      <a href="#" onclick="sendPayConfirm(${i});return false;"
+        style="display:block;text-align:center;text-decoration:none;font-size:11.5px;font-weight:800;padding:10px 4px;border-radius:9px;background:linear-gradient(135deg,#1A7A3C,#0F5C2A);color:#fff;">
+        ${T('cfB')}</a>
+    </div>` : ''}
   </div>`;
+}
+
+// ── "I have paid" → WhatsApp confirmation to the shop ───────────────────────
+function sendPayConfirm(i) {
+  const it  = P.p[i];
+  const amt = parseFloat(document.getElementById('pay-amt-' + i).value) || 0;
+  if (amt <= 0) { alert(T('cfErr')); return; }
+  const utr = (document.getElementById('utr-' + i).value || '').trim();
+  let digits = String(P.sp || '').replace(/\D/g, '');
+  if (digits.length === 10) digits = '91' + digits;
+  if (!digits) return;
+  const msg = (LANG === 'ta'
+    ? '✅ கட்டணம் செலுத்தப்பட்டது\nபில்: ' + it.b +
+      '\nபெயர்: ' + (P.cn || '') +
+      '\nதொகை: ₹' + Math.round(amt).toLocaleString('en-IN') +
+      (utr ? '\nUTR/குறிப்பு: ' + utr : '') +
+      '\nதேதி: ' + fmtD(todayS()) +
+      '\nரசீது பதிவு செய்யவும்.'
+    : '✅ Payment done\nBill: ' + it.b +
+      '\nName: ' + (P.cn || '') +
+      '\nAmount: ₹' + Math.round(amt).toLocaleString('en-IN') +
+      (utr ? '\nUTR/Ref: ' + utr : '') +
+      '\nDate: ' + fmtD(todayS()) +
+      '\nPlease record my receipt.');
+  window.open('https://wa.me/' + digits + '?text=' + encodeURIComponent(msg), '_blank');
 }
 
 function histBlock(it) {
