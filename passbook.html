@@ -300,10 +300,8 @@
 
   <svg width="0" height="0" style="position:absolute" aria-hidden="true">
     <filter id="lgWarp">
-      <feTurbulence type="fractalNoise" baseFrequency="0.012 0.018" numOctaves="2" seed="7" result="n">
-        <animate attributeName="baseFrequency" dur="16s" values="0.012 0.018;0.02 0.01;0.012 0.018" repeatCount="indefinite"/>
-      </feTurbulence>
-      <feDisplacementMap in="SourceGraphic" in2="n" scale="16" xChannelSelector="R" yChannelSelector="G"/>
+      <feTurbulence type="fractalNoise" baseFrequency="0.014 0.016" numOctaves="2" seed="7" result="n"/>
+      <feDisplacementMap in="SourceGraphic" in2="n" scale="14" xChannelSelector="R" yChannelSelector="G"/>
     </filter>
   </svg>
 
@@ -318,7 +316,7 @@
     <div class="lg-pad" id="lg-pad"></div>
     <div class="errmsg" id="g-err"></div>
     <button onclick="unlock()" data-i="gb">🔓 Unlock Passbook</button>
-    <div id="lg-build" style="font-size:9px;color:#C2AE72;margin-top:8px;letter-spacing:.5px;">build v11d</div>
+    <div id="lg-build" style="font-size:9px;color:#C2AE72;margin-top:8px;letter-spacing:.5px;">build v11e</div>
   </div>
 
   <!-- PASSBOOK -->
