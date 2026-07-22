@@ -96,10 +96,6 @@
   .gate h2{font-size:16px;font-weight:800;color:#2C1F0A;margin:10px 0 4px;}
   .gate p{font-size:11.5px;color:#8A7350;line-height:1.55;margin-bottom:16px;}
   .gate .cn{font-size:13.5px;font-weight:800;color:var(--blue);margin-bottom:14px;}
-  .pinrow{display:flex;gap:8px;justify-content:center;margin-bottom:14px;}
-  .pinrow input{width:100%;max-width:200px;text-align:center;font-family:monospace;font-size:24px;font-weight:800;letter-spacing:8px;padding:11px 6px;border:2px solid #E4D8B8;border-radius:13px;background:#FFFDF4;color:#2C1F0A;outline:none;transition:border-color .2s,box-shadow .2s;}
-  .pinrow input:focus{border-color:var(--gold);box-shadow:0 0 0 4px rgba(201,168,76,.18);}
-  .gate.err .pinrow{animation:shake .4s ease;}
   /* ── Liquid-glass PIN (v11) ── */
   .lg-stage{position:relative;padding:16px 8px;border-radius:18px;margin:2px auto 14px;max-width:300px;overflow:hidden;
     background:linear-gradient(120deg,rgba(201,168,76,.28),rgba(139,32,48,.14) 55%,rgba(26,74,140,.20));}
@@ -312,11 +308,10 @@
     <div class="cn" id="g-cn"></div>
     <p data-i="gp">This passbook is protected. Enter the PIN given to you by the shop.</p>
     <div class="lg-stage"><div class="lg-pins" id="lg-pins"></div></div>
-    <input id="pin" type="password" inputmode="numeric" autocomplete="off" maxlength="12" onkeydown="if(event.key==='Enter')unlock()" oninput="pinSync()" style="position:absolute;opacity:0;width:1px;height:1px;pointer-events:none;">
+    <input id="pin" type="password" inputmode="numeric" autocomplete="off" aria-label="PIN" maxlength="12" onkeydown="if(event.key==='Enter')unlock()" oninput="pinSync()" style="position:absolute;opacity:0;width:1px;height:1px;pointer-events:none;">
     <div class="lg-pad" id="lg-pad"></div>
     <div class="errmsg" id="g-err"></div>
     <button onclick="unlock()" data-i="gb">🔓 Unlock Passbook</button>
-    <div id="lg-build" style="font-size:9px;color:#C2AE72;margin-top:8px;letter-spacing:.5px;">build v11e</div>
   </div>
 
   <!-- PASSBOOK -->
@@ -331,7 +326,7 @@ var LZString=function(){var r=String.fromCharCode,o="ABCDEFGHIJKLMNOPQRSTUVWXYZa
 <script>
 'use strict';
 // ═══════════════════════════════════════════════════════════════════════════
-// Customer Passbook Viewer v11 — Sivaji Bank Pawnshop Manager
+// Customer Passbook Viewer v11.1 — Sivaji Bank Pawnshop Manager
 // Data arrives compressed in the URL fragment (#...) — nothing is ever sent
 // to any server. PIN gate is a privacy speed-bump, matching the app's model.
 // Supports payload v1 (active pledges only) and v2 (+ payment history,
@@ -520,9 +515,10 @@ function revealFallbackInput() {
 function buildPinUI() {
   try {
     SECLEN = Math.min(8, Math.max(4, String((P && P.sec) || '').length || 4));
-    console.log('[passbook] buildPinUI running, PIN length =', SECLEN);
     const pins = document.getElementById('lg-pins');
     if (pins) {
+      pins.setAttribute('role', 'group');
+      pins.setAttribute('aria-label', 'PIN entry');
       pins.innerHTML = '';
       for (let i = 0; i < SECLEN; i++) {
         const c = document.createElement('div');
@@ -535,11 +531,12 @@ function buildPinUI() {
     const pad = document.getElementById('lg-pad');
     if (pad) {
       pad.innerHTML = '';
-      ['1','2','3','4','5','6','7','8','9','⌫','0','✓'].forEach(k => {
+      [['1','1'],['2','2'],['3','3'],['4','4'],['5','5'],['6','6'],['7','7'],['8','8'],['9','9'],['⌫','Delete'],['0','0'],['✓','Unlock']].forEach(([k, label]) => {
         const b = document.createElement('button');
         b.type = 'button';
         b.className = 'lg-key' + (k.length > 1 ? ' wide' : '');
         b.textContent = k;
+        b.setAttribute('aria-label', label);
         b.onclick = () => padKey(k);
         pad.appendChild(b);
       });
@@ -555,24 +552,36 @@ function buildPinUI() {
     revealFallbackInput();
   }
 }
+let _maskTimer = null;
 function pinSync() {
   const inp = document.getElementById('pin');
   const v = (inp.value || '').replace(/\D/g, '').slice(0, SECLEN);
   inp.value = v;
   const cells = [...document.querySelectorAll('#lg-pins .lg-cell')];
+  const grew = v.length > _pinPrev;
   cells.forEach((c, i) => {
     const has = i < v.length;
     c.classList.toggle('filled', has);
     c.classList.toggle('active', i === v.length);
-    c.querySelector('.lg-digit').textContent = has ? v[i] : '';
+    const dg = c.querySelector('.lg-digit');
+    // Privacy: mask all digits as dots, except briefly reveal the one just typed.
+    if (!has) dg.textContent = '';
+    else if (i === v.length - 1 && grew) dg.textContent = v[i];
+    else dg.textContent = '•';
   });
-  if (v.length > _pinPrev && v.length > 0) {
+  if (grew && v.length > 0) {
     const c = cells[v.length - 1];
     if (c) { c.classList.remove('pop'); void c.offsetWidth; c.classList.add('pop'); }
+    clearTimeout(_maskTimer);
+    _maskTimer = setTimeout(() => {
+      const last = document.querySelectorAll('#lg-pins .lg-cell')[v.length - 1];
+      const dg = last && last.querySelector('.lg-digit');
+      if (dg && dg.textContent && dg.textContent !== '•') dg.textContent = '•';
+    }, 750);
   }
   _pinPrev = v.length;
   const err = document.getElementById('g-err'); if (err) err.textContent = '';
-  if (v.length === SECLEN) setTimeout(unlock, 400);
+  if (v.length === SECLEN) setTimeout(unlock, 450);
 }
 function padKey(k) {
   const inp = document.getElementById('pin');
@@ -583,16 +592,27 @@ function padKey(k) {
 }
 function pinReset() { const inp = document.getElementById('pin'); if (inp) inp.value = ''; _pinPrev = 0; pinSync(); }
 
+let _pinTries = 0, _pinLockUntil = 0;
 function unlock() {
   const gate = document.getElementById('gate');
   const val = (document.getElementById('pin').value || '').trim();
   if (!P) return;
+  if (Date.now() < _pinLockUntil) {
+    const secs = Math.ceil((_pinLockUntil - Date.now()) / 1000);
+    document.getElementById('g-err').textContent = (LANG === 'ta'
+      ? 'அதிக முயற்சிகள் — ' + secs + ' வினாடிகள் காத்திருக்கவும்'
+      : 'Too many attempts — wait ' + secs + 's');
+    return;
+  }
   if (val !== String(P.sec||'')) {
+    _pinTries++;
     gate.classList.remove('err'); void gate.offsetWidth; gate.classList.add('err');
     document.getElementById('g-err').textContent = T('wrong');
+    if (_pinTries >= 5) { _pinLockUntil = Date.now() + 15000; _pinTries = 0; }
     setTimeout(pinReset, 550);
     return;
   }
+  _pinTries = 0;
   // Animated unlock: gate glides out, then the book cascades in.
   const show = () => {
     gate.style.display = 'none';
