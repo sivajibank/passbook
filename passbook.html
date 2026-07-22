@@ -111,22 +111,25 @@
   .gate.err .lg-stage{animation:shake .4s ease;}
   .lg-pins{display:flex;gap:10px;justify-content:center;position:relative;z-index:1;}
   .lg-cell{width:54px;height:66px;position:relative;cursor:text;border-radius:18px;
-    background:rgba(255,255,255,.16);-webkit-backdrop-filter:blur(7px) saturate(1.5);backdrop-filter:blur(7px) saturate(1.5);
-    border:1px solid rgba(255,255,255,.55);
-    box-shadow:inset 0 1px 1px rgba(255,255,255,.75),inset 0 -8px 14px rgba(255,255,255,.20),0 8px 20px rgba(40,24,16,.25);
+    background:rgba(255,255,255,.34);-webkit-backdrop-filter:blur(6px) saturate(1.5);backdrop-filter:blur(6px) saturate(1.5);
+    border:1px solid rgba(255,255,255,.75);
+    box-shadow:inset 0 1px 1px rgba(255,255,255,.9),inset 0 -8px 14px rgba(201,168,76,.20),0 6px 16px rgba(40,24,16,.28),0 0 0 1px rgba(154,122,48,.35);
     overflow:hidden;transition:transform .3s var(--ease-spring),box-shadow .3s,background .3s,border-color .3s;}
-  .lg-cell::before{content:'';position:absolute;left:0;right:0;top:0;height:46%;pointer-events:none;
-    background:linear-gradient(180deg,rgba(255,255,255,.55),rgba(255,255,255,0));border-radius:18px 18px 40% 40%;}
+  .lg-cell::before{content:'';position:absolute;left:0;right:0;top:0;height:46%;pointer-events:none;z-index:1;
+    background:linear-gradient(180deg,rgba(255,255,255,.6),rgba(255,255,255,0));border-radius:18px 18px 40% 40%;}
+  .lg-dot{position:absolute;left:50%;top:50%;width:9px;height:9px;border-radius:50%;transform:translate(-50%,-50%);
+    background:rgba(154,122,48,.4);z-index:1;transition:opacity .2s;}
+  .lg-cell.filled .lg-dot,.lg-cell.active .lg-dot{opacity:0;}
   .lg-blob{position:absolute;width:64px;height:64px;left:50%;top:60%;transform:translate(-50%,-50%);
     background:radial-gradient(circle at 35% 35%,rgba(232,201,122,.85),rgba(201,168,76,.35) 55%,transparent 72%);
-    border-radius:46% 54% 43% 57% / 52% 44% 56% 48%;filter:url(#lgWarp) blur(1px);opacity:.5;
+    border-radius:46% 54% 43% 57% / 52% 44% 56% 48%;filter:url(#lgWarp) blur(1px);opacity:0;
     animation:lgMorph 6s ease-in-out infinite,lgFloat 7s ease-in-out infinite;}
   @keyframes lgMorph{0%{border-radius:46% 54% 43% 57% / 52% 44% 56% 48%}50%{border-radius:60% 40% 55% 45% / 42% 58% 42% 58%}100%{border-radius:46% 54% 43% 57% / 52% 44% 56% 48%}}
   @keyframes lgFloat{0%,100%{top:60%}50%{top:44%}}
-  .lg-cell.active{transform:translateY(-2px);border-color:rgba(232,201,122,.9);
-    box-shadow:inset 0 1px 1px rgba(255,255,255,.85),inset 0 -8px 16px rgba(232,201,122,.3),0 0 0 4px rgba(201,168,76,.22),0 10px 24px rgba(40,24,16,.3);}
-  .lg-cell.active .lg-blob{opacity:.8;animation-duration:3.4s,4.5s;}
-  .lg-cell.filled{background:rgba(232,201,122,.24);border-color:rgba(154,122,48,.8);}
+  .lg-cell.active{transform:translateY(-2px);border-color:rgba(232,201,122,1);
+    box-shadow:inset 0 1px 1px rgba(255,255,255,.9),inset 0 -8px 16px rgba(232,201,122,.35),0 0 0 4px rgba(201,168,76,.28),0 10px 24px rgba(40,24,16,.3);}
+  .lg-cell.active .lg-blob{opacity:.75;animation-duration:3.4s,4.5s;}
+  .lg-cell.filled{background:rgba(232,201,122,.32);border-color:rgba(154,122,48,.9);}
   .lg-cell.filled .lg-blob{opacity:.85;top:52%;}
   .lg-digit{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
     font-family:Georgia,'Times New Roman',serif;font-size:28px;color:#6B1020;z-index:3;opacity:0;transform:translateY(8px) scale(.5);}
@@ -500,7 +503,8 @@ function payAmtChanged(idx) {
   document.getElementById('h-shop').textContent = '📘 ' + (P.sn || 'Passbook');
   if (P.st) { const e = document.getElementById('h-shopta'); e.textContent = P.st; e.style.display='block'; }
   document.getElementById('g-cn').textContent = P.cn || '';
-  buildPinUI();
+  if (document.getElementById('lg-pins')) buildPinUI();
+  else document.addEventListener('DOMContentLoaded', buildPinUI);
   setLang(LANG);
   setTimeout(()=>document.getElementById('pin').focus(), 300);
 })();
@@ -518,7 +522,7 @@ function buildPinUI() {
     for (let i = 0; i < SECLEN; i++) {
       const c = document.createElement('div');
       c.className = 'lg-cell';
-      c.innerHTML = '<span class="lg-blob"></span><span class="lg-sweep"></span><span class="lg-digit"></span>';
+      c.innerHTML = '<span class="lg-dot"></span><span class="lg-blob"></span><span class="lg-sweep"></span><span class="lg-digit"></span>';
       c.onclick = () => document.getElementById('pin').focus({ preventScroll: true });
       pins.appendChild(c);
     }
