@@ -7,7 +7,7 @@
 <meta name="robots" content="noindex, nofollow">
 <meta http-equiv="Cache-Control" content="no-cache, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
-<!-- PASSBOOK VIEWER v10 — Latest-gen UI/UX: aurora backdrop, glassmorphic animated
+<!-- PASSBOOK VIEWER v11 — Latest-gen UI/UX: aurora backdrop, glassmorphic animated
      KPI cards (orbs + sheen + shimmer + count-up, matching main app v183 dashboard),
      scroll-reveal pledge cards, animated unlock sequence, reduced-motion safe.
      ALL v9 logic preserved: LZString fragment payload, PIN gate, tiered/compound
@@ -100,6 +100,50 @@
   .pinrow input{width:100%;max-width:200px;text-align:center;font-family:monospace;font-size:24px;font-weight:800;letter-spacing:8px;padding:11px 6px;border:2px solid #E4D8B8;border-radius:13px;background:#FFFDF4;color:#2C1F0A;outline:none;transition:border-color .2s,box-shadow .2s;}
   .pinrow input:focus{border-color:var(--gold);box-shadow:0 0 0 4px rgba(201,168,76,.18);}
   .gate.err .pinrow{animation:shake .4s ease;}
+  /* ── Liquid-glass PIN (v11) ── */
+  .lg-stage{position:relative;padding:16px 8px;border-radius:18px;margin:2px auto 14px;max-width:300px;overflow:hidden;
+    background:linear-gradient(120deg,rgba(201,168,76,.28),rgba(139,32,48,.14) 55%,rgba(26,74,140,.20));}
+  .lg-stage::before{content:'';position:absolute;width:140px;height:140px;border-radius:50%;top:-44px;left:8%;
+    background:radial-gradient(circle,rgba(232,201,122,.6),transparent 70%);filter:blur(6px);animation:lgDrift 9s ease-in-out infinite alternate;}
+  .lg-stage::after{content:'';position:absolute;width:130px;height:130px;border-radius:50%;bottom:-50px;right:6%;
+    background:radial-gradient(circle,rgba(139,32,48,.5),transparent 70%);filter:blur(8px);animation:lgDrift 11s ease-in-out infinite alternate-reverse;}
+  @keyframes lgDrift{from{transform:translate(0,0)}to{transform:translate(26px,16px)}}
+  .gate.err .lg-stage{animation:shake .4s ease;}
+  .lg-pins{display:flex;gap:10px;justify-content:center;position:relative;z-index:1;}
+  .lg-cell{width:54px;height:66px;position:relative;cursor:text;border-radius:18px;
+    background:rgba(255,255,255,.16);-webkit-backdrop-filter:blur(7px) saturate(1.5);backdrop-filter:blur(7px) saturate(1.5);
+    border:1px solid rgba(255,255,255,.55);
+    box-shadow:inset 0 1px 1px rgba(255,255,255,.75),inset 0 -8px 14px rgba(255,255,255,.20),0 8px 20px rgba(40,24,16,.25);
+    overflow:hidden;transition:transform .3s var(--ease-spring),box-shadow .3s,background .3s,border-color .3s;}
+  .lg-cell::before{content:'';position:absolute;left:0;right:0;top:0;height:46%;pointer-events:none;
+    background:linear-gradient(180deg,rgba(255,255,255,.55),rgba(255,255,255,0));border-radius:18px 18px 40% 40%;}
+  .lg-blob{position:absolute;width:64px;height:64px;left:50%;top:60%;transform:translate(-50%,-50%);
+    background:radial-gradient(circle at 35% 35%,rgba(232,201,122,.85),rgba(201,168,76,.35) 55%,transparent 72%);
+    border-radius:46% 54% 43% 57% / 52% 44% 56% 48%;filter:url(#lgWarp) blur(1px);opacity:.5;
+    animation:lgMorph 6s ease-in-out infinite,lgFloat 7s ease-in-out infinite;}
+  @keyframes lgMorph{0%{border-radius:46% 54% 43% 57% / 52% 44% 56% 48%}50%{border-radius:60% 40% 55% 45% / 42% 58% 42% 58%}100%{border-radius:46% 54% 43% 57% / 52% 44% 56% 48%}}
+  @keyframes lgFloat{0%,100%{top:60%}50%{top:44%}}
+  .lg-cell.active{transform:translateY(-2px);border-color:rgba(232,201,122,.9);
+    box-shadow:inset 0 1px 1px rgba(255,255,255,.85),inset 0 -8px 16px rgba(232,201,122,.3),0 0 0 4px rgba(201,168,76,.22),0 10px 24px rgba(40,24,16,.3);}
+  .lg-cell.active .lg-blob{opacity:.8;animation-duration:3.4s,4.5s;}
+  .lg-cell.filled{background:rgba(232,201,122,.24);border-color:rgba(154,122,48,.8);}
+  .lg-cell.filled .lg-blob{opacity:.85;top:52%;}
+  .lg-digit{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+    font-family:Georgia,'Times New Roman',serif;font-size:28px;color:#6B1020;z-index:3;opacity:0;transform:translateY(8px) scale(.5);}
+  .lg-cell.filled .lg-digit{opacity:1;transform:none;color:#3A2A10;animation:lgPop .5s var(--ease-spring);}
+  @keyframes lgPop{0%{opacity:0;transform:translateY(10px) scale(.4) rotate(-6deg)}100%{opacity:1;transform:none}}
+  .lg-sweep{position:absolute;inset:0;z-index:2;pointer-events:none;opacity:0;
+    background:linear-gradient(115deg,transparent 35%,rgba(255,255,255,.7) 50%,transparent 65%);background-size:250% 100%;background-position:-140% 0;}
+  .lg-cell.pop .lg-sweep{animation:lgSweep .6s ease;}
+  @keyframes lgSweep{0%{opacity:1;background-position:-140% 0}100%{opacity:0;background-position:240% 0}}
+  .gate.err .lg-cell{border-color:#F4A4A4;background:rgba(248,113,113,.18);}
+  .lg-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin:0 auto 4px;max-width:250px;}
+  .lg-key{height:46px;border-radius:13px;border:1px solid rgba(201,168,76,.35);background:rgba(255,255,255,.6);
+    -webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);font-family:inherit;font-size:20px;font-weight:600;color:#2C1F0A;
+    cursor:pointer;transition:transform .1s,background .15s,box-shadow .15s;display:flex;align-items:center;justify-content:center;}
+  .lg-key:hover{background:#FBF3D8;box-shadow:0 4px 12px rgba(154,122,48,.18);}
+  .lg-key:active{transform:scale(.94);}
+  .lg-key.wide{font-size:16px;color:var(--blue);}
   .gate .errmsg{font-size:11px;color:var(--red);font-weight:700;min-height:16px;margin-bottom:8px;}
   .gate button{width:100%;max-width:220px;padding:13px;border:none;border-radius:13px;background:linear-gradient(135deg,#1A4A8C,#0F2E5E);color:#fff;font-family:inherit;font-size:14px;font-weight:800;cursor:pointer;transition:transform .18s var(--ease-spring),filter .15s,box-shadow .2s;box-shadow:0 8px 22px rgba(26,74,140,.35);}
   .gate button:hover{filter:brightness(1.1);box-shadow:0 12px 28px rgba(26,74,140,.45);}
@@ -251,13 +295,24 @@
     <div class="tag"><span class="dot"></span><span data-i="live">Live dues — calculated fresh every time you open this</span></div>
   </div>
 
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <filter id="lgWarp">
+      <feTurbulence type="fractalNoise" baseFrequency="0.012 0.018" numOctaves="2" seed="7" result="n">
+        <animate attributeName="baseFrequency" dur="16s" values="0.012 0.018;0.02 0.01;0.012 0.018" repeatCount="indefinite"/>
+      </feTurbulence>
+      <feDisplacementMap in="SourceGraphic" in2="n" scale="16" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+  </svg>
+
   <!-- PIN GATE -->
   <div class="gate" id="gate">
     <div class="lock">🔐</div>
     <h2 data-i="gt">Enter your PIN</h2>
     <div class="cn" id="g-cn"></div>
     <p data-i="gp">This passbook is protected. Enter the PIN given to you by the shop.</p>
-    <div class="pinrow"><input id="pin" type="password" inputmode="numeric" autocomplete="off" maxlength="12" placeholder="••••" onkeydown="if(event.key==='Enter')unlock()"></div>
+    <div class="lg-stage"><div class="lg-pins" id="lg-pins"></div></div>
+    <input id="pin" type="password" inputmode="numeric" autocomplete="off" maxlength="12" onkeydown="if(event.key==='Enter')unlock()" oninput="pinSync()" style="position:absolute;opacity:0;width:1px;height:1px;pointer-events:none;">
+    <div class="lg-pad" id="lg-pad"></div>
     <div class="errmsg" id="g-err"></div>
     <button onclick="unlock()" data-i="gb">🔓 Unlock Passbook</button>
   </div>
@@ -274,7 +329,7 @@ var LZString=function(){var r=String.fromCharCode,o="ABCDEFGHIJKLMNOPQRSTUVWXYZa
 <script>
 'use strict';
 // ═══════════════════════════════════════════════════════════════════════════
-// Customer Passbook Viewer v10 — Sivaji Bank Pawnshop Manager
+// Customer Passbook Viewer v11 — Sivaji Bank Pawnshop Manager
 // Data arrives compressed in the URL fragment (#...) — nothing is ever sent
 // to any server. PIN gate is a privacy speed-bump, matching the app's model.
 // Supports payload v1 (active pledges only) and v2 (+ payment history,
@@ -445,9 +500,71 @@ function payAmtChanged(idx) {
   document.getElementById('h-shop').textContent = '📘 ' + (P.sn || 'Passbook');
   if (P.st) { const e = document.getElementById('h-shopta'); e.textContent = P.st; e.style.display='block'; }
   document.getElementById('g-cn').textContent = P.cn || '';
+  buildPinUI();
   setLang(LANG);
   setTimeout(()=>document.getElementById('pin').focus(), 300);
 })();
+
+// ── Liquid-glass PIN input driver ────────────────────────────────────────────
+// The visible cells are cosmetic; the real value lives in the hidden #pin input,
+// so unlock() (which compares #pin to P.sec) is unchanged. Cell count matches the
+// actual PIN length (4 by default) so any stored PIN still works.
+let SECLEN = 4, _pinPrev = 0;
+function buildPinUI() {
+  SECLEN = Math.min(8, Math.max(4, String((P && P.sec) || '').length || 4));
+  const pins = document.getElementById('lg-pins');
+  if (pins) {
+    pins.innerHTML = '';
+    for (let i = 0; i < SECLEN; i++) {
+      const c = document.createElement('div');
+      c.className = 'lg-cell';
+      c.innerHTML = '<span class="lg-blob"></span><span class="lg-sweep"></span><span class="lg-digit"></span>';
+      c.onclick = () => document.getElementById('pin').focus({ preventScroll: true });
+      pins.appendChild(c);
+    }
+  }
+  const pad = document.getElementById('lg-pad');
+  if (pad) {
+    pad.innerHTML = '';
+    ['1','2','3','4','5','6','7','8','9','⌫','0','✓'].forEach(k => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'lg-key' + (k.length > 1 ? ' wide' : '');
+      b.textContent = k;
+      b.onclick = () => padKey(k);
+      pad.appendChild(b);
+    });
+  }
+  _pinPrev = 0;
+  pinSync();
+}
+function pinSync() {
+  const inp = document.getElementById('pin');
+  const v = (inp.value || '').replace(/\D/g, '').slice(0, SECLEN);
+  inp.value = v;
+  const cells = [...document.querySelectorAll('#lg-pins .lg-cell')];
+  cells.forEach((c, i) => {
+    const has = i < v.length;
+    c.classList.toggle('filled', has);
+    c.classList.toggle('active', i === v.length);
+    c.querySelector('.lg-digit').textContent = has ? v[i] : '';
+  });
+  if (v.length > _pinPrev && v.length > 0) {
+    const c = cells[v.length - 1];
+    if (c) { c.classList.remove('pop'); void c.offsetWidth; c.classList.add('pop'); }
+  }
+  _pinPrev = v.length;
+  const err = document.getElementById('g-err'); if (err) err.textContent = '';
+  if (v.length === SECLEN) setTimeout(unlock, 400);
+}
+function padKey(k) {
+  const inp = document.getElementById('pin');
+  if (k === '⌫') inp.value = inp.value.slice(0, -1);
+  else if (k === '✓') { unlock(); return; }
+  else { if ((inp.value.replace(/\D/g, '')).length >= SECLEN) return; inp.value += k; }
+  pinSync();
+}
+function pinReset() { const inp = document.getElementById('pin'); if (inp) inp.value = ''; _pinPrev = 0; pinSync(); }
 
 function unlock() {
   const gate = document.getElementById('gate');
@@ -456,6 +573,7 @@ function unlock() {
   if (val !== String(P.sec||'')) {
     gate.classList.remove('err'); void gate.offsetWidth; gate.classList.add('err');
     document.getElementById('g-err').textContent = T('wrong');
+    setTimeout(pinReset, 550);
     return;
   }
   // Animated unlock: gate glides out, then the book cascades in.
@@ -562,7 +680,7 @@ function renderBook() {
   let f = '';
   if (P.sp) f += `<a class="callbtn" href="tel:${esc(P.sp).replace(/[^\d+]/g,'')}">${T('call')} · ${esc(P.sp)}</a>`;
   if (P.ad) f += `<div class="addr">📍 ${esc(P.ad)}</div>`;
-  f += `<div class="note">🔒 ${T('privacy')}<br><span style="opacity:.55;">viewer v10</span></div>`;
+  f += `<div class="note">🔒 ${T('privacy')}<br><span style="opacity:.55;">viewer v11</span></div>`;
   document.getElementById('foot').innerHTML = f;
 }
 
