@@ -318,6 +318,7 @@
     <div class="lg-pad" id="lg-pad"></div>
     <div class="errmsg" id="g-err"></div>
     <button onclick="unlock()" data-i="gb">🔓 Unlock Passbook</button>
+    <div id="lg-build" style="font-size:9px;color:#C2AE72;margin-top:8px;letter-spacing:.5px;">build v11d</div>
   </div>
 
   <!-- PASSBOOK -->
@@ -489,6 +490,7 @@ function payAmtChanged(idx) {
 }
 
 // ── Boot: decode fragment ───────────────────────────────────────────────────
+let SECLEN = 4, _pinPrev = 0;   // declared before boot() so buildPinUI() can use them
 (function boot(){
   try {
     const frag = location.hash.replace(/^#/, '');
@@ -513,34 +515,47 @@ function payAmtChanged(idx) {
 // The visible cells are cosmetic; the real value lives in the hidden #pin input,
 // so unlock() (which compares #pin to P.sec) is unchanged. Cell count matches the
 // actual PIN length (4 by default) so any stored PIN still works.
-let SECLEN = 4, _pinPrev = 0;
+function revealFallbackInput() {
+  const inp = document.getElementById('pin');
+  if (inp) inp.style.cssText = 'display:block;width:100%;max-width:220px;margin:2px auto 12px;text-align:center;font-family:monospace;font-size:22px;font-weight:800;letter-spacing:8px;padding:11px;border:2px solid #E4D8B8;border-radius:12px;background:#FFFDF4;color:#2C1F0A;outline:none;';
+}
 function buildPinUI() {
-  SECLEN = Math.min(8, Math.max(4, String((P && P.sec) || '').length || 4));
-  const pins = document.getElementById('lg-pins');
-  if (pins) {
-    pins.innerHTML = '';
-    for (let i = 0; i < SECLEN; i++) {
-      const c = document.createElement('div');
-      c.className = 'lg-cell';
-      c.innerHTML = '<span class="lg-dot"></span><span class="lg-blob"></span><span class="lg-sweep"></span><span class="lg-digit"></span>';
-      c.onclick = () => document.getElementById('pin').focus({ preventScroll: true });
-      pins.appendChild(c);
+  try {
+    SECLEN = Math.min(8, Math.max(4, String((P && P.sec) || '').length || 4));
+    console.log('[passbook] buildPinUI running, PIN length =', SECLEN);
+    const pins = document.getElementById('lg-pins');
+    if (pins) {
+      pins.innerHTML = '';
+      for (let i = 0; i < SECLEN; i++) {
+        const c = document.createElement('div');
+        c.className = 'lg-cell';
+        c.innerHTML = '<span class="lg-dot"></span><span class="lg-blob"></span><span class="lg-sweep"></span><span class="lg-digit"></span>';
+        c.onclick = () => document.getElementById('pin').focus({ preventScroll: true });
+        pins.appendChild(c);
+      }
     }
+    const pad = document.getElementById('lg-pad');
+    if (pad) {
+      pad.innerHTML = '';
+      ['1','2','3','4','5','6','7','8','9','⌫','0','✓'].forEach(k => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'lg-key' + (k.length > 1 ? ' wide' : '');
+        b.textContent = k;
+        b.onclick = () => padKey(k);
+        pad.appendChild(b);
+      });
+    }
+    _pinPrev = 0;
+    pinSync();
+    if (!document.querySelector('#lg-pins .lg-cell')) {
+      console.warn('[passbook] no PIN cells rendered — showing fallback input');
+      revealFallbackInput();
+    }
+  } catch (e) {
+    console.error('[passbook] buildPinUI failed:', e);
+    revealFallbackInput();
   }
-  const pad = document.getElementById('lg-pad');
-  if (pad) {
-    pad.innerHTML = '';
-    ['1','2','3','4','5','6','7','8','9','⌫','0','✓'].forEach(k => {
-      const b = document.createElement('button');
-      b.type = 'button';
-      b.className = 'lg-key' + (k.length > 1 ? ' wide' : '');
-      b.textContent = k;
-      b.onclick = () => padKey(k);
-      pad.appendChild(b);
-    });
-  }
-  _pinPrev = 0;
-  pinSync();
 }
 function pinSync() {
   const inp = document.getElementById('pin');
