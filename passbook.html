@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ta">
 <head>
@@ -241,10 +240,11 @@
   .payamt span{font-size:12px;font-weight:800;color:#5C4A1E;}
   .payamt input{flex:1;min-width:0;padding:8px 10px;border:1.5px solid #E4D8B8;border-radius:10px;font-family:inherit;font-size:14px;font-weight:800;color:#2C1F0A;background:#FFFDF4;outline:none;transition:border-color .2s,box-shadow .2s;}
   .payamt input:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(201,168,76,.16);}
-  .paybtns{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:5px;}
+  .paybtns{display:grid;grid-template-columns:repeat(auto-fit,minmax(52px,1fr));gap:5px;}
   .paybtns a{display:block;text-align:center;text-decoration:none;font-size:9px;font-weight:800;padding:9px 2px;border-radius:10px;border:1px solid #ddd;background:#fff;transition:transform .15s var(--ease-spring),box-shadow .15s;}
   .paybtns a:hover{box-shadow:0 4px 12px rgba(0,0,0,.1);transform:translateY(-2px);}
   .paybtns a:active{transform:scale(.94);}
+  .paybtns .wa{color:#fff;background:linear-gradient(135deg,#25D366,#128C7E);border-color:#128C7E;}
   .paybtns .gp{color:#1a73e8;} .paybtns .pp{color:#5f259f;} .paybtns .pt{color:#00baf2;} .paybtns .up{color:#3D2B0F;border-color:#E4D8B8;background:#FFF8E8;}
 
   /* payment history */
@@ -336,6 +336,25 @@ var LZString=function(){var r=String.fromCharCode,o="ABCDEFGHIJKLMNOPQRSTUVWXYZa
 // cards, animated unlock. Calculation engine unchanged from v9.
 // ═══════════════════════════════════════════════════════════════════════════
 let P = null;          // decoded payload
+let LIVE = null;       // {url,id,key} when this card is a live one
+
+function b64uDec(str) {
+  str = String(str).replace(/-/g, '+').replace(/_/g, '/');
+  while (str.length % 4) str += '=';
+  const bin = atob(str), out = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+  return out;
+}
+
+// The key travels in the URL fragment, which browsers never transmit, so the
+// server holding this blob cannot read it and neither can anyone who copies it
+// out of storage.
+function pbDecrypt(keyB64u, blobB64u) {
+  const raw = b64uDec(blobB64u);
+  return crypto.subtle.importKey('raw', b64uDec(keyB64u), 'AES-GCM', false, ['decrypt'])
+    .then(k => crypto.subtle.decrypt({ name: 'AES-GCM', iv: raw.slice(0, 12) }, k, raw.slice(12)))
+    .then(pt => JSON.parse(new TextDecoder().decode(pt)));
+}
 let LANG = localStorage.getItem('pb_lang') || 'en';
 let FIRST_RENDER = true;   // count-up runs only on the first render, not on language toggle
 
@@ -486,7 +505,19 @@ function payAmtChanged(idx) {
 let SECLEN = 4, _pinPrev = 0;   // declared before boot() so buildPinUI() can use them
 (function boot(){
   try {
-    const frag = location.hash.replace(/^#/, '');
+    let frag = location.hash.replace(/^#/, '');
+    // A live card looks like  L.<b64u worker url>.<record id>.<key>.<snapshot>
+    // The snapshot still rides on the end, so the page opens instantly and
+    // works with no signal; the fetch happens after the PIN, never before.
+    if (frag.charAt(0) === 'L' && frag.charAt(1) === '.') {
+      const parts = frag.split('.');
+      if (parts.length >= 5) {
+        try {
+          LIVE = { url: new TextDecoder().decode(b64uDec(parts[1])), id: parts[2], key: parts[3] };
+        } catch(e) { LIVE = null; }
+        frag = parts.slice(4).join('.');
+      }
+    }
     if (!frag) throw 0;
     P = JSON.parse(LZString.decompressFromEncodedURIComponent(frag));
     if (!P || !Array.isArray(P.p)) throw 0;
@@ -624,12 +655,64 @@ function unlock() {
   else { gate.classList.add('leaving'); setTimeout(show, 360); }
 }
 
+// ── live refresh ──────────────────────────────────────────────────────────
+// Runs only once the PIN is accepted, so an unopened link never touches the
+// network. Every failure is silent and leaves the snapshot on screen: a
+// customer with no signal is no worse off than before live sync existed.
+let _pbBannerState = null;
+function pbLiveBanner(kind, text) {
+  _pbBannerState = { kind, text };
+  let el = document.getElementById('pblive');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'pblive';
+    el.style.cssText = 'margin:0 0 11px;padding:8px 12px;border-radius:10px;font-size:11.5px;font-weight:700;text-align:center;';
+    const bk = document.getElementById('book');
+    if (!bk) return;
+    bk.insertBefore(el, bk.firstChild);
+  }
+  const c = { live:['#E6F6EC','#1A5C2C'], stale:['#FFF7E6','#8A5A00'], busy:['#EEF3F8','#3A5A7A'] }[kind] || ['#EEF3F8','#3A5A7A'];
+  el.style.background = c[0]; el.style.color = c[1]; el.textContent = text;
+}
+
+function pbRefreshLive() {
+  if (!LIVE || !LIVE.url || !LIVE.id || !LIVE.key) return;
+  if (!(window.crypto && crypto.subtle)) return;      // needs https or localhost
+  pbLiveBanner('busy', 'Checking for updates…');
+  fetch(LIVE.url.replace(/\/+$/, '') + '/p/' + encodeURIComponent(LIVE.id) + '?t=' + Date.now(),
+        { cache: 'no-store' })
+    .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); })
+    .then(blob => pbDecrypt(LIVE.key, blob.trim()))
+    .then(fresh => {
+      // The record carries both books; this viewer wants the pledge half.
+      const pb = fresh && fresh.pb;
+      if (!pb || !Array.isArray(pb.p)) throw new Error('no pledge data');
+      const keepSec = P.sec;
+      P = pb;
+      if (!P.sec) P.sec = keepSec;      // PIN is not re-sent; keep the one that worked
+      renderBook();
+      const when = fresh.ts ? new Date(fresh.ts) : null;
+      pbLiveBanner('live', '\u25CF Live \u00B7 updated ' +
+        (when ? String(when.getDate()).padStart(2,'0') + '/' +
+                String(when.getMonth()+1).padStart(2,'0') + '/' + when.getFullYear()
+              : 'just now') +
+        ' \u00B7 ' + P.p.length + ' active pledge' + (P.p.length === 1 ? '' : 's'));
+    })
+    .catch(() => {
+      pbLiveBanner('stale', 'Offline \u2014 showing the details saved on this card' +
+        (P.asOf ? ' (' + P.asOf + ')' : ''));
+    });
+}
+
 function renderBook() {
   const asOf = todayS();
   // Silently omit pledges older than 450 days (from pledge date). Recomputed on
   // every open, so a pledge that crosses the limit after the QR was printed
   // disappears automatically. Idempotent — safe on language-toggle re-render.
   P.p = (P.p || []).filter(it => !it.d || daysBetween(it.d, asOf) <= 450);
+  // Guard against recursion: renderBook() is what the live fetch calls back into.
+  if (LIVE && !window._pbLiveStarted) { window._pbLiveStarted = 1; setTimeout(pbRefreshLive, 350); }
+  if (_pbBannerState) setTimeout(() => pbLiveBanner(_pbBannerState.kind, _pbBannerState.text), 0);
   const book = document.getElementById('book');
   const dues = P.p.map(it => calcDue(it, asOf));
   const totPr  = P.p.reduce((s,it) => s + (it.pr||0), 0);
@@ -734,6 +817,10 @@ function payBlock(i, it, d) {
       <a id="pay-phonepe-${i}" class="pp" href="${upiLink('phonepe', def||0, it.b)}">PhonePe</a>
       <a id="pay-paytm-${i}"   class="pt" href="${upiLink('paytm',   def||0, it.b)}">Paytm</a>
       <a id="pay-upi-${i}"     class="up" href="${upiLink('upi',     def||0, it.b)}">UPI</a>
+      ${P.sp ? `<a id="pay-wa-${i}" class="wa" target="_blank" rel="noopener"
+        href="https://wa.me/${String(P.sp).replace(/\D/g,'').replace(/^(?!91)/, '91')}?text=${
+          encodeURIComponent((P.cn || '') + ' \u00B7 Pledge ' + (it.b || '') + ' \u00B7 ' + T('paynow'))
+        }">WhatsApp</a>` : ''}
     </div>
     <div class="mnote" style="margin:7px 0 0;">${T('paynote')}</div>
     ${P.sp ? `
