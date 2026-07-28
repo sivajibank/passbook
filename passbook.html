@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ta">
 <head>
@@ -151,6 +152,18 @@
   .book{display:none;}
 
   /* ── Summary hero (name + as-of) ── */
+  .sortbar{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:0 0 12px;
+    animation:fadeUp .45s var(--ease-out) .18s both;}
+  .sortbar .sl{font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.7px;
+    color:rgba(232,201,122,.55);margin-right:1px;}
+  .sortbar .chip{border:1px solid rgba(232,201,122,.26);background:rgba(255,255,255,.03);
+    color:rgba(252,246,233,.72);border-radius:999px;padding:6px 12px;font:inherit;font-size:10.5px;
+    font-weight:800;cursor:pointer;transition:transform .15s var(--ease-spring),background .18s,border-color .18s,color .18s;}
+  .sortbar .chip:active{transform:scale(.94);}
+  .sortbar .chip.on{background:linear-gradient(135deg,rgba(201,168,76,.28),rgba(201,168,76,.14));
+    border-color:#C9A84C;color:#F3E4BC;box-shadow:0 3px 12px rgba(201,168,76,.2);}
+  .kpi-over .kval{color:#FFB4A8;}
+  .kpi-over{border-color:rgba(255,140,120,.32)!important;}
   .sumhero{
     background:linear-gradient(135deg,#16331F 0%,#0F1A10 60%,#2C1F0A 100%);
     border:1px solid rgba(232,201,122,.25);border-radius:18px;padding:15px 16px;
@@ -365,6 +378,10 @@ const I18N = {
   gb:{en:'🔓 Unlock Passbook', ta:'🔓 பாஸ்புக்கைத் திற'},
   wrong:{en:'Wrong PIN — please try again', ta:'தவறான PIN — மீண்டும் முயற்சிக்கவும்'},
   active:{en:'Active', ta:'செயலில்'}, duetoday:{en:'Due Today', ta:'இன்று செலுத்த'}, principal:{en:'Principal', ta:'அசல்'},
+  overdue:{en:'Overdue', ta:'தாமதம்'},
+  srtDue:{en:'Due date', ta:'கெடு தேதி'}, srtAmt:{en:'Amount', ta:'தொகை'},
+  srtNew:{en:'Newest', ta:'புதியது'}, srtOver:{en:'Overdue first', ta:'தாமதம் முதலில்'},
+  sortBy:{en:'Sort', ta:'வரிசை'},
   asof:{en:'Data as of', ta:'தரவு தேதி'},
   stale:{en:'⚠️ This passbook snapshot is #D days old. Recent payments or renewals may not be shown — ask the shop for a fresh link or card.', ta:'⚠️ இந்த பாஸ்புக் தரவு #D நாட்கள் பழையது. சமீபத்திய கட்டணங்கள் காட்டப்படாமல் இருக்கலாம் — புதிய இணைப்பு/கார்டு கேட்கவும்.'},
   pledged:{en:'Pledged on', ta:'அடகு தேதி'}, duedate:{en:'Due date', ta:'கெடு தேதி'},
@@ -659,6 +676,7 @@ function unlock() {
 // Runs only once the PIN is accepted, so an unopened link never touches the
 // network. Every failure is silent and leaves the snapshot on screen: a
 // customer with no signal is no worse off than before live sync existed.
+let SORT = (function(){ try { return localStorage.getItem('pb_sort') || 'due'; } catch(e) { return 'due'; } })();
 let _pbBannerState = null;
 function pbLiveBanner(kind, text) {
   _pbBannerState = { kind, text };
@@ -719,6 +737,7 @@ function renderBook() {
   const totDue = dues.reduce((s,d) => s + d.total, 0);
   const initials = (P.cn||'?').trim().split(/\s+/).slice(0,2).map(w=>w[0]).join('').toUpperCase() || '?';
   const genAge = daysBetween(P.gen || asOf, asOf);
+  const overdueCt = P.p.filter(it => it.dd && asOf > it.dd).length;
 
   let h = `
     <div class="sumhero">
@@ -732,12 +751,32 @@ function renderBook() {
         <div class="kico">💰</div><div class="kval" id="kpi-due">₹0</div><div class="klab">${T('duetoday')}</div></div>
       <div class="kpi"><div class="sheen"></div><div class="shimmer"></div>
         <div class="kico">🏦</div><div class="kval" id="kpi-pr">₹0</div><div class="klab">${T('principal')}</div></div>
+      ${overdueCt ? `<div class="kpi kpi-over"><div class="sheen"></div><div class="shimmer"></div>
+        <div class="kico">⏰</div><div class="kval" id="kpi-over">0</div><div class="klab">${T('overdue')}</div></div>` : ''}
     </div>`;
 
   if (genAge > 7) h += `<div class="stale">${T('stale').replace('#D', genAge)}</div>`;
 
-  P.p.forEach((it, i) => {
-    const d = dues[i];
+  // With one or two pledges the chips are noise; past that, finding the one
+  // the customer is asking about matters more than the original order.
+  if (P.p.length > 2) {
+    const chips = [['due', T('srtDue')], ['over', T('srtOver')], ['amt', T('srtAmt')], ['new', T('srtNew')]];
+    h += `<div class="sortbar"><span class="sl">${T('sortBy')}</span>` +
+      chips.map(([k, lbl]) =>
+        `<button class="chip${SORT === k ? ' on' : ''}" data-sort="${k}">${esc(lbl)}</button>`
+      ).join('') + `</div>`;
+  }
+
+  // Sort a view of the list, carrying each pledge's computed dues with it, so
+  // the underlying payload order (and the live-sync snapshot) stays untouched.
+  const view = P.p.map((it, i) => ({ it, d: dues[i], i }));
+  const ovDays = x => (x.it.dd && asOf > x.it.dd) ? daysBetween(x.it.dd, asOf) : -1;
+  if (SORT === 'due')  view.sort((a, b) => String(a.it.dd || '9999').localeCompare(String(b.it.dd || '9999')));
+  if (SORT === 'over') view.sort((a, b) => ovDays(b) - ovDays(a));
+  if (SORT === 'amt')  view.sort((a, b) => (b.d.total || 0) - (a.d.total || 0));
+  if (SORT === 'new')  view.sort((a, b) => String(b.it.d || '').localeCompare(String(a.it.d || '')));
+
+  view.forEach(({ it, d, i }) => {
     const overdueDays = it.dd ? daysBetween(it.dd, asOf) : 0;
     const isOver = it.dd && asOf > it.dd;
     // Elapsed progress ring: pledge date → due date (capped at 100%).
@@ -793,6 +832,14 @@ function renderBook() {
   countUp(document.getElementById('kpi-active'), P.p.length, v => String(Math.round(v)), 650);
   countUp(document.getElementById('kpi-due'), totDue, fmtR, 950);
   countUp(document.getElementById('kpi-pr'), totPr, fmtR, 950);
+  if (overdueCt) countUp(document.getElementById('kpi-over'), overdueCt, v => String(Math.round(v)), 650);
+  [].slice.call(book.querySelectorAll('.chip[data-sort]')).forEach(btn => {
+    btn.addEventListener('click', () => {
+      SORT = btn.getAttribute('data-sort');
+      try { localStorage.setItem('pb_sort', SORT); } catch(e){}
+      renderBook();
+    });
+  });
   reveal();
   FIRST_RENDER = false;
 
