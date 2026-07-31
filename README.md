@@ -304,20 +304,102 @@
   .renew .rn-t{font-size:11px;font-weight:800;color:#1A4A8C;}
   .renew .rn-s{font-size:10.5px;color:#3C5F91;margin-top:3px;line-height:1.5;}
 
+  /* ── Print statement header (screen-hidden, A4-only) ── */
+  .psheet{display:none;}
+
   @media print{
-    /* Text-size choice is for reading on a phone; printing at 19px would waste
-       paper, so paper always uses the base size. */
-    html{font-size:15px!important;}
-    /* A statement the customer can keep: drop the dark theme and every control,
-       and let the cards break naturally across pages. */
-    .no-print,.lockwrap,.langbar,.paybtns,.planner,.pl-rem,.confirm,.cta{display:none!important;}
-    body{background:#fff!important;color:#111!important;}
-    .pcard,.sumhero,.kpi{background:#fff!important;border:1px solid #bbb!important;
-      box-shadow:none!important;color:#111!important;break-inside:avoid;}
-    .sumhero .nm,.kval,.pcard *{color:#111!important;}
-    .jph{max-height:120px;}
-    *{animation:none!important;transition:none!important;}
-    @page{margin:12mm;}
+    /* ══ A4 STATEMENT ══
+       210 × 297mm, 11mm margins → 188mm of usable width. The screen layout is
+       a single column already, so the work here is keeping the colour (paper
+       colour is stripped by default), removing every control that means
+       nothing on paper, and stopping cards splitting across a page break. */
+    @page{size:A4 portrait;margin:11mm 11mm 14mm;}
+
+    /* The text-size control is for reading on a phone; paper always prints at
+       the base size so a customer on A++ does not waste sheets. */
+    html{font-size:13.5px!important;}
+    body{background:#fff!important;color:#1A1209!important;padding:0!important;margin:0!important;}
+
+    /* Anything interactive, or already restated in the printed header. */
+    /* Nothing tappable belongs on paper: the pay row, its amount box and the
+       UTR confirmation field were all still printing, costing ~105px a card. */
+    /* Nothing tappable belongs on paper: the pay row, its amount box and the
+       UTR confirmation field were all still printing, costing ~105px a card.
+       The on-screen header is dropped too — the printed band above restates the
+       shop name, so it was appearing twice on the sheet. */
+    .no-print,.lockwrap,.langbar,.paybtns,.payrow,.planner,.pl-rem,.confirm,.cta,
+    .sortbar,.tools,.st-b,#pblive,.stale,.live-note,.foot,.note,
+    .hdr,.tag,
+    input,textarea,button,select{display:none!important;}
+
+    /* Reveal-on-scroll never fires for cards below the fold, and paper has no
+       fold — without this they print as blank space. */
+    .pcard,.ccard,.rv,.settle,.kpi{opacity:1!important;transform:none!important;}
+
+    /* Colour has to be forced on, or browsers drop backgrounds when printing. */
+    *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;
+      animation:none!important;transition:none!important;}
+
+    /* ── printed header band ── */
+    .psheet{display:block!important;margin:0 0 9px;}
+    .psheet .ph-band{background:linear-gradient(135deg,#1A3A6A 0%,#2C6EB0 100%);color:#fff;
+      border-radius:9px;padding:11px 15px;display:flex;justify-content:space-between;align-items:center;gap:14px;}
+    .psheet .ph-shop{font-size:17px;font-weight:800;color:#FFD98A;letter-spacing:.2px;line-height:1.2;}
+    .psheet .ph-addr{font-size:8.5px;opacity:.85;margin-top:3px;line-height:1.4;max-width:118mm;}
+    .psheet .ph-tag{text-align:right;font-size:11px;font-weight:800;line-height:1.45;}
+    .psheet .ph-tag span{display:block;font-size:9px;color:#FFD98A;font-weight:700;}
+    .psheet .ph-cust{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;
+      border:1px solid #D8DEE7;border-left:3px solid #2C6EB0;border-radius:7px;
+      padding:7px 12px;margin-top:7px;font-size:10px;}
+    .psheet .ph-cust b{color:#1A3A6A;}
+
+    /* ── KPI strip: keep every gradient, force one row of four ── */
+    .kpigrid,.kpigrid.has4{display:grid!important;
+      grid-template-columns:repeat(4,1fr)!important;gap:6px!important;
+      margin:0 0 9px!important;break-inside:avoid;}
+    .kpi{border-radius:9px!important;padding:9px 10px!important;color:#fff!important;
+      box-shadow:none!important;border:none!important;min-height:0!important;break-inside:avoid;}
+    .kpi .kico{width:19px!important;height:19px!important;font-size:10px!important;margin-bottom:5px!important;}
+    .kpi .kval{font-size:14px!important;color:#fff!important;}
+    .kpi .klab{font-size:6.5px!important;margin-bottom:5px!important;color:#fff!important;opacity:.92;}
+    .kpi .ktap{display:none!important;}
+    .kpi .kbar{height:2.5px!important;}
+    .kpi::before,.kpi::after{display:none!important;}   /* decorative orbs muddy on paper */
+
+    /* ── settle total: the single most useful line on a statement, so it stays,
+          minus its payment button ── */
+    .settle{display:flex!important;background:linear-gradient(135deg,#12572F,#0C3D21)!important;
+      border:none!important;border-radius:9px!important;padding:10px 15px!important;
+      margin:0 0 10px!important;break-inside:avoid;}
+    .settle .st-t{font-size:11.5px!important;color:#CFF3DE!important;}
+    .settle .st-s,.settle .st-om{color:#A9DCC0!important;}
+    .settle .st-v{font-size:18px!important;color:#fff!important;}
+
+    /* ── customer hero collapses into the header band above ── */
+    .sumhero{display:none!important;}
+
+    /* ── pledge cards ── */
+    .pcard{background:#fff!important;border:1px solid #C9D2DE!important;
+      border-left:3px solid #C9A84C!important;border-radius:8px!important;
+      box-shadow:none!important;color:#1A1209!important;
+      padding:10px 12px!important;margin:0 0 8px!important;
+      break-inside:avoid;page-break-inside:avoid;}
+    .pcard *{color:#1A1209!important;}
+    .pcard .num,.pcard b{color:#0F2E5E!important;}
+    /* Keep the meaningful colour accents that help a customer scan the page */
+    .pcard .totrow,.pcard .totbox{background:#FFF8E6!important;border:1px solid #E8CF8E!important;}
+    .pcard .totrow *,.pcard .totbox *{color:#7A5C00!important;}
+    .renew{background:#EEF4FF!important;border:1px solid #C3D6F5!important;break-inside:avoid;}
+    .renew *{color:#1A4A8C!important;}
+    .rnw-tag{background:#FFF3E0!important;border:1px solid #F0C97A!important;color:#8A5A00!important;}
+    .jph{max-height:26mm!important;object-fit:cover;border:1px solid #D8DEE7!important;}
+
+    /* Closed/redeemed history keeps a soft green tint so it reads as settled */
+    .cst{background:#E8F6EE!important;color:#12572F!important;border:1px solid #B7E0C8!important;}
+
+    /* ── footer on every page ── */
+    .psheet .ph-foot{display:block!important;margin-top:10px;padding-top:7px;
+      border-top:1px solid #D8DEE7;font-size:8px;color:#6B7280;line-height:1.55;text-align:center;}
   }
 
   .planner{margin-top:10px;padding:10px 12px;border:1px dashed #E0D3AE;border-radius:12px;background:#FFFDF6;}
@@ -490,6 +572,11 @@ const I18N = {
   sortBy:{en:'Sort', ta:'வரிசை'},
   asof:{en:'Data as of', ta:'தரவு தேதி'},
   snap:{en:'card made', ta:'அட்டை தேதி'},
+  stmtT:{en:'PLEDGE STATEMENT', ta:'அடகு அறிக்கை'},
+  stmtS:{en:'Customer copy', ta:'வாடிக்கையாளர் பிரதி'},
+  stmtCust:{en:'Customer', ta:'வாடிக்கையாளர்'},
+  stmtFoot:{en:'Computer-generated statement · valid without signature. Dues are calculated to the date shown above and may change. Please verify at the shop before settlement.',
+            ta:'கணினி மூலம் உருவாக்கப்பட்டது · கையொப்பம் தேவையில்லை. மேலே உள்ள தேதிக்கான கணக்கு. செலுத்தும் முன் கடையில் உறுதி செய்யவும்.'},
   stale:{en:'⚠️ This passbook snapshot is #D days old. Recent payments or renewals may not be shown — ask the shop for a fresh link or card.', ta:'⚠️ இந்த பாஸ்புக் தரவு #D நாட்கள் பழையது. சமீபத்திய கட்டணங்கள் காட்டப்படாமல் இருக்கலாம் — புதிய இணைப்பு/கார்டு கேட்கவும்.'},
   pledged:{en:'Pledged on', ta:'அடகு தேதி'}, duedate:{en:'Due date', ta:'கெடு தேதி'},
   lastpay:{en:'Last payment', ta:'கடைசி கட்டணம்'}, rate:{en:'Interest rate', ta:'வட்டி விகிதம்'},
@@ -722,7 +809,14 @@ window._pbDirections = function(){
   window.open('https://www.google.com/maps/search/?api=1&query=' + q, '_blank');
 };
 
-window._pbPrint = function(){ window.print(); };
+// Mark everything visible before printing, so a card that was never scrolled
+// past still appears on the sheet.
+function _pbRevealAllForPrint(){
+  document.querySelectorAll('.pcard').forEach(el => el.classList.add('vis'));
+  document.querySelectorAll('.rv').forEach(el => el.classList.add('in'));
+}
+window.addEventListener('beforeprint', _pbRevealAllForPrint);
+window._pbPrint = function(){ _pbRevealAllForPrint(); setTimeout(() => window.print(), 60); };
 
 window._pbPlanDate = function(idx){
   const it = P.p[idx]; if (!it) return;
@@ -1000,6 +1094,20 @@ function renderBook() {
   const overdueCt = P.p.filter(it => it.dd && asOf > it.dd).length;
 
   let h = `
+    <div class="psheet">
+      <div class="ph-band">
+        <div>
+          <div class="ph-shop">${esc(P.sn || 'Passbook')}</div>
+          ${P.ad ? `<div class="ph-addr">${esc(P.ad)}${P.sp ? ' · ' + esc(P.sp) : ''}</div>` : ''}
+        </div>
+        <div class="ph-tag">${T('stmtT')}<span>${T('stmtS')}</span></div>
+      </div>
+      <div class="ph-cust">
+        <div><b>${T('stmtCust')}:</b> ${esc(P.cn)}</div>
+        <div><b>${T('asof')}:</b> ${fmtD(asOf)}</div>
+        <div><b>${T('active')}:</b> ${P.p.length}${overdueCt ? ' · ' + overdueCt + ' ' + T('overdueN') : ''}</div>
+      </div>
+    </div>
     <div class="sumhero">
       <div class="av">${initials}</div>
       <div><div class="nm">${esc(P.cn)}</div><div class="asof">${T('asof')}: ${fmtD(asOf)}${P.gen && P.gen !== asOf ? ' · ' + T('snap') + ' ' + fmtD(P.gen) : ''}</div></div>
@@ -1145,6 +1253,7 @@ function renderBook() {
       </div>`;
     });
   }
+  h += `<div class="psheet"><div class="ph-foot">${T('stmtFoot')}</div></div>`;
   book.innerHTML = h;
 
   // Animated KPI count-up (first unlock only; language toggle re-renders static)
