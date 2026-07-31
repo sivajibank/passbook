@@ -297,14 +297,6 @@
     @page{margin:12mm;}
   }
 
-  .stepwarn{background:#F7F4EC;border:1px solid #E2DACA;
-    border-radius:12px;padding:9px 12px;margin:10px 0 0;animation:cardIn .4s var(--ease-out) both;}
-  .stepwarn .sw-t{font-size:11px;font-weight:800;color:#6B5A32;line-height:1.45;}
-  .stepwarn .sw-s{font-size:10px;color:#8A7A5A;margin-top:3px;}
-  .stepwarn.soon{background:linear-gradient(135deg,#FFF4E0,#FFF9EE);border-color:#F0C97A;
-    box-shadow:0 2px 10px rgba(240,201,122,.28);}
-  .stepwarn.soon .sw-t{color:#8A5A00;}
-  .stepwarn.soon .sw-s{color:#A07A2E;}
   .planner{margin-top:10px;padding:10px 12px;border:1px dashed #E0D3AE;border-radius:12px;background:#FFFDF6;}
   .planner .pl-h{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:#8A7350;margin-bottom:7px;}
   .planner .pl-r{display:flex;gap:6px;}
@@ -452,8 +444,6 @@ const I18N = {
   planTot:{en:'Total on that day', ta:'அன்றைய மொத்தம்'},
   planMore:{en:'more than today', ta:'இன்றை விட அதிகம்'},
   planSame:{en:'same as today', ta:'இன்று போலவே'},
-  stepWarn:{en:'Interest rises by #A on #D', ta:'#D அன்று வட்டி #A உயரும்'},
-  stepTip:{en:'Paying before that date saves #A', ta:'அதற்கு முன் செலுத்தினால் #A மிச்சம்'},
   remind:{en:'Remind me', ta:'நினைவூட்டு'},
   days:{en:'days', ta:'நாட்கள்'},
   settleT:{en:'Settle everything today', ta:'இன்று அனைத்தையும் அடைக்க'},
@@ -1081,19 +1071,6 @@ function renderBook() {
         return `<div class="renew">
           <div class="rn-t">🔁 ${T('renewT')}</div>
           <div class="rn-s">${T('renewS').replace('#A', fmtR(Math.round(dd.interest))).replace('#D', fmtD(nd))}</div>
-        </div>`;
-      })()}
-      ${(function(){
-        const st = nextStepUp(it, asOf);
-        if (!st) return '';
-        // Shown on every pledge so the customer always knows what the next
-        // month will cost. Two states, because a notice that looks identical
-        // for thirty days stops being read: calm while there is time, urgent
-        // in the last stretch when paying early still changes the amount.
-        const soon = st.inDays <= 12;
-        return `<div class="stepwarn${soon ? ' soon' : ''}">
-          <div class="sw-t">${soon ? '⚠️' : '📈'} ${T('stepWarn').replace('#A', fmtR(st.jump)).replace('#D', fmtD(st.date))}</div>
-          <div class="sw-s">${T('stepTip').replace('#A', fmtR(st.jump))} · ${st.inDays} ${T('days')}</div>
         </div>`;
       })()}
       <div class="planner">
