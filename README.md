@@ -257,6 +257,7 @@
     border-radius:16px;padding:13px 15px;margin-bottom:12px;animation:cardIn .45s var(--ease-out) .04s both;}
   .settle .st-t{font-size:12px;font-weight:800;color:#B9F0CE;}
   .settle .st-s{font-size:10px;color:rgba(185,240,206,.62);margin-top:2px;}
+  .settle .st-om{font-size:9.5px;color:#FFD9A8;margin-top:5px;line-height:1.45;}
   .settle .st-r{text-align:right;flex-shrink:0;}
   .settle .st-v{font-size:20px;font-weight:800;color:#fff;letter-spacing:-.02em;}
   .settle .st-b{display:inline-block;margin-top:5px;text-decoration:none;font-size:10.5px;font-weight:800;
@@ -281,6 +282,9 @@
   .renew .rn-s{font-size:10.5px;color:#3C5F91;margin-top:3px;line-height:1.5;}
 
   @media print{
+    /* Text-size choice is for reading on a phone; printing at 19px would waste
+       paper, so paper always uses the base size. */
+    html{font-size:15px!important;}
     /* A statement the customer can keep: drop the dark theme and every control,
        and let the cards break naturally across pages. */
     .no-print,.lockwrap,.langbar,.paybtns,.planner,.pl-rem,.confirm,.cta{display:none!important;}
@@ -453,14 +457,17 @@ const I18N = {
   remind:{en:'Remind me', ta:'நினைவூட்டு'},
   days:{en:'days', ta:'நாட்கள்'},
   settleT:{en:'Settle everything today', ta:'இன்று அனைத்தையும் அடைக்க'},
-  settleS:{en:'#N pledges · closes all of them', ta:'#N அடகுகள் · அனைத்தும் முடியும்'},
+  settleS:{en:'the #N pledges shown here', ta:'இங்கு காட்டப்படும் #N அடகுகள்'},
+  omitN:{en:'#N older pledge(s) are not shown here — please ask the shop',
+         ta:'#N பழைய அடகு(கள்) இங்கு இல்லை — கடையில் கேட்கவும்'},
   settlePay:{en:'Pay total now', ta:'மொத்தமும் செலுத்து'},
   remindAll:{en:'Remind me about all', ta:'அனைத்தையும் நினைவூட்டு'},
   txtSize:{en:'Text size', ta:'எழுத்து அளவு'},
   directions:{en:'Directions to shop', ta:'கடைக்கு வழி'},
   printBtn:{en:'Print / Save PDF', ta:'அச்சிடு / PDF'},
   renewT:{en:'Renew instead of closing', ta:'முடிக்காமல் புதுப்பிக்க'},
-  renewS:{en:'Pay only the interest #A — due date moves to #D', ta:'வட்டி #A மட்டும் — கெடு #D ஆகும்'},
+  renewS:{en:'Pay just the interest #A — then no further interest until #D',
+          ta:'வட்டி #A மட்டும் செலுத்தினால் — #D வரை கூடுதல் வட்டி இல்லை'},
   renewedN:{en:'Renewed #N time(s)', ta:'#N முறை புதுப்பிக்கப்பட்டது'},
   renewedOn:{en:'last on #D', ta:'கடைசியாக #D'},
   photoAlt:{en:'Pledged item', ta:'அடகு பொருள்'},
@@ -985,6 +992,7 @@ function renderBook() {
       <div class="st-l">
         <div class="st-t">${T('settleT')}</div>
         <div class="st-s">${T('settleS').replace('#N', P.p.length)}</div>
+        ${P.om ? `<div class="st-om">${T('omitN').replace('#N', P.om)}</div>` : ''}
       </div>
       <div class="st-r">
         <div class="st-v num">${fmtR(st)}</div>
@@ -1067,7 +1075,9 @@ function renderBook() {
         // option when they cannot clear the principal yet.
         const dd = calcDue(it, asOf);
         if (!dd.interest || dd.interest < 1) return '';
-        const nd = addDaysISO(asOf, 30);
+        // calcDue() charges nothing for the first 35 days after a payment, so
+        // clearing the interest today buys exactly that much breathing room.
+        const nd = addDaysISO(asOf, 35);
         return `<div class="renew">
           <div class="rn-t">🔁 ${T('renewT')}</div>
           <div class="rn-s">${T('renewS').replace('#A', fmtR(Math.round(dd.interest))).replace('#D', fmtD(nd))}</div>
