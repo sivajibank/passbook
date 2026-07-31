@@ -161,8 +161,23 @@
   .sortbar .chip:active{transform:scale(.94);}
   .sortbar .chip.on{background:linear-gradient(135deg,rgba(201,168,76,.28),rgba(201,168,76,.14));
     border-color:#C9A84C;color:#F3E4BC;box-shadow:0 3px 12px rgba(201,168,76,.2);}
-  .kpi-over .kval{color:#FFB4A8;}
-  .kpi-over{border-color:rgba(255,140,120,.32)!important;}
+  /* The overdue card is the one that should pull the eye: it breathes, and
+     tapping it jumps straight to the pledge that needs attention. */
+  .kpi-over{border-color:rgba(255,190,180,.4)!important;cursor:pointer;}
+  .kpi-over .kval{color:#FFE3DE;}
+  .kpi-over::after{animation:overPulse 2.8s ease-in-out infinite;}
+  @keyframes overPulse{0%,100%{transform:scale(1);opacity:.5;}50%{transform:scale(1.5);opacity:.16;}}
+  .kpi-over .ktap{font-size:7.5px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;
+    opacity:.72;margin-top:4px;display:flex;align-items:center;gap:3px;}
+
+  /* Proportion bar — fills on entry, so each figure carries its share of the
+     whole rather than sitting as a bare number. */
+  .kpi .kbar{height:3px;border-radius:999px;background:rgba(255,255,255,.18);margin-top:8px;overflow:hidden;}
+  .kpi .kbar i{display:block;height:100%;border-radius:inherit;background:rgba(255,255,255,.85);
+    width:0;transition:width 1.1s var(--ease-out);}
+
+  /* Phones have no hover, so the lift needs a press state of its own. */
+  .kpi:active{transform:translateY(-2px) scale(.985);}
   .sumhero{
     background:linear-gradient(135deg,#16331F 0%,#0F1A10 60%,#2C1F0A 100%);
     border:1px solid rgba(232,201,122,.25);border-radius:18px;padding:15px 16px;
@@ -176,7 +191,10 @@
   .sumhero .asof{font-size:10px;color:rgba(232,201,122,.55);margin-top:2px;}
 
   /* ── ANIMATED KPI CARDS (main-app v183 dashboard parity) ── */
-  .kpigrid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px;margin-bottom:14px;}
+  .kpigrid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:14px;}
+  /* With the overdue card present the row becomes 2×2, so nothing is stranded
+     at a third of the width on its own line. */
+  .kpigrid.has4{grid-template-columns:repeat(2,1fr);}
   .kpi{
     border-radius:16px;padding:13px 11px 12px;color:#fff;position:relative;overflow:hidden;
     user-select:none;cursor:default;border:1px solid rgba(255,255,255,.08);
@@ -187,6 +205,7 @@
   .kpi:nth-child(1){animation-delay:.06s;background:linear-gradient(135deg,#1A7A3C 0%,#0F5C2A 100%);box-shadow:0 10px 26px rgba(15,92,42,.42);}
   .kpi:nth-child(2){animation-delay:.14s;background:linear-gradient(135deg,#C9A84C 0%,#8A6A20 100%);box-shadow:0 10px 26px rgba(154,122,48,.45);}
   .kpi:nth-child(3){animation-delay:.22s;background:linear-gradient(135deg,#1A4A8C 0%,#0F2E5E 100%);box-shadow:0 10px 26px rgba(15,46,94,.45);}
+  .kpi:nth-child(4){animation-delay:.30s;background:linear-gradient(135deg,#B4342A 0%,#7A1E17 100%);box-shadow:0 10px 26px rgba(122,30,23,.45);}
   /* Big decorative orb top-right */
   .kpi::before{content:'';position:absolute;top:-45%;right:-22%;width:92px;height:92px;background:rgba(255,255,255,.10);border-radius:50%;pointer-events:none;transition:transform .45s var(--ease-out);}
   /* Small orb bottom-left */
@@ -438,7 +457,8 @@ const I18N = {
   gb:{en:'🔓 Unlock Passbook', ta:'🔓 பாஸ்புக்கைத் திற'},
   wrong:{en:'Wrong PIN — please try again', ta:'தவறான PIN — மீண்டும் முயற்சிக்கவும்'},
   active:{en:'Active', ta:'செயலில்'}, duetoday:{en:'Due Today', ta:'இன்று செலுத்த'}, principal:{en:'Principal', ta:'அசல்'},
-  overdue:{en:'Overdue', ta:'தாமதம்'},
+  overdueN:{en:'Overdue', ta:'தாமதம்'},
+  tapOver:{en:'tap to view', ta:'பார்க்க தட்டவும்'},
   planTitle:{en:'Planning to pay later?', ta:'பின்னர் செலுத்த திட்டமா?'},
   planPick:{en:'Pick a date', ta:'தேதியைத் தேர்வு செய்க'},
   planTot:{en:'Total on that day', ta:'அன்றைய மொத்தம்'},
@@ -637,6 +657,24 @@ window._pbRemind = function(idx){
 // One number for "how much to walk out clean today", plus a single UPI link.
 // The most common question at the counter, and it was previously unanswerable
 // without adding the cards up by hand.
+// The overdue count is the figure a customer most wants to act on, so the card
+// is a shortcut to the pledge itself rather than a dead statistic.
+window._pbJumpOverdue = function(){
+  const asOf = todayS();
+  const idx = P.p.findIndex(it => it.dd && asOf > it.dd);
+  if (idx < 0) return;
+  const cards = document.querySelectorAll('#book .pcard');
+  const el = cards[idx] || cards[0];
+  if (!el) return;
+  el.scrollIntoView({ behavior: REDUCED ? 'auto' : 'smooth', block: 'center' });
+  if (!REDUCED && el.animate) {
+    el.animate([{ boxShadow:'0 0 0 0 rgba(201,168,76,0)' },
+                { boxShadow:'0 0 0 3px rgba(201,168,76,.8)' },
+                { boxShadow:'0 0 0 0 rgba(201,168,76,0)' }],
+               { duration:1500, easing:'ease-out' });
+  }
+};
+
 window._pbSettleAll = function(){
   const t = todayS();
   let total = 0;
@@ -961,15 +999,20 @@ function renderBook() {
       <div class="av">${initials}</div>
       <div><div class="nm">${esc(P.cn)}</div><div class="asof">${T('asof')}: ${fmtD(P.gen)} · ${fmtD(asOf)}</div></div>
     </div>
-    <div class="kpigrid">
+    <div class="kpigrid${overdueCt ? ' has4' : ''}">
       <div class="kpi"><div class="sheen"></div><div class="shimmer"></div>
-        <div class="kico">📜</div><div class="kval" id="kpi-active">0</div><div class="klab">${T('active')}</div></div>
+        <div class="kico">📜</div><div class="kval" id="kpi-active">0</div><div class="klab">${T('active')}</div>
+        <div class="kbar"><i id="kbar-active"></i></div></div>
       <div class="kpi"><div class="sheen"></div><div class="shimmer"></div>
-        <div class="kico">💰</div><div class="kval" id="kpi-due">₹0</div><div class="klab">${T('duetoday')}</div></div>
+        <div class="kico">💰</div><div class="kval" id="kpi-due">₹0</div><div class="klab">${T('duetoday')}</div>
+        <div class="kbar"><i id="kbar-due"></i></div></div>
       <div class="kpi"><div class="sheen"></div><div class="shimmer"></div>
-        <div class="kico">🏦</div><div class="kval" id="kpi-pr">₹0</div><div class="klab">${T('principal')}</div></div>
-      ${overdueCt ? `<div class="kpi kpi-over"><div class="sheen"></div><div class="shimmer"></div>
-        <div class="kico">⏰</div><div class="kval" id="kpi-over">0</div><div class="klab">${T('overdue')}</div></div>` : ''}
+        <div class="kico">🏦</div><div class="kval" id="kpi-pr">₹0</div><div class="klab">${T('principal')}</div>
+        <div class="kbar"><i id="kbar-pr"></i></div></div>
+      ${overdueCt ? `<div class="kpi kpi-over" onclick="_pbJumpOverdue()"><div class="sheen"></div><div class="shimmer"></div>
+        <div class="kico">⏰</div><div class="kval" id="kpi-over">0</div><div class="klab">${T('overdueN')}</div>
+        <div class="ktap">↓ ${T('tapOver')}</div>
+        <div class="kbar"><i id="kbar-over"></i></div></div>` : ''}
     </div>`;
 
   if (genAge > 7) h += `<div class="stale">${T('stale').replace('#D', genAge)}</div>`;
@@ -1104,6 +1147,25 @@ function renderBook() {
   countUp(document.getElementById('kpi-due'), totDue, fmtR, 950);
   countUp(document.getElementById('kpi-pr'), totPr, fmtR, 950);
   if (overdueCt) countUp(document.getElementById('kpi-over'), overdueCt, v => String(Math.round(v)), 650);
+  // Each bar shows that figure's share of the whole, so the numbers carry
+  // proportion as well as magnitude. Widths are set a tick later so the CSS
+  // transition has a zero-width frame to animate away from.
+  setTimeout(() => {
+    const setBar = (id, pct) => {
+      const el = document.getElementById(id);
+      if (el) el.style.width = Math.max(0, Math.min(100, pct)) + '%';
+    };
+    const closedCt = (P.cl && P.cl.length) || 0;
+    const interest = Math.max(0, totDue - totPr);
+    // Each bar answers a different question, so none of them sits pinned at
+    // full: how many of this customer's pledges are still open, how much of
+    // what they owe is interest rather than principal, and how many pledges
+    // have slipped past their due date.
+    setBar('kbar-active', (P.p.length + closedCt) > 0 ? (P.p.length / (P.p.length + closedCt)) * 100 : 100);
+    setBar('kbar-due',    totDue > 0 ? (interest / totDue) * 100 : 0);
+    setBar('kbar-pr',     totDue > 0 ? (totPr    / totDue) * 100 : 100);
+    if (overdueCt) setBar('kbar-over', P.p.length ? (overdueCt / P.p.length) * 100 : 0);
+  }, 120);
   [].slice.call(book.querySelectorAll('.chip[data-sort]')).forEach(btn => {
     btn.addEventListener('click', () => {
       SORT = btn.getAttribute('data-sort');
