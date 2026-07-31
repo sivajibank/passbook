@@ -172,7 +172,10 @@
 
   /* Proportion bar — fills on entry, so each figure carries its share of the
      whole rather than sitting as a bare number. */
-  .kpi .kbar{height:3px;border-radius:999px;background:rgba(255,255,255,.18);margin-top:8px;overflow:hidden;}
+  .kpi .kbar{height:3px;border-radius:999px;background:rgba(255,255,255,.18);
+    margin-top:auto;width:100%;overflow:hidden;padding-top:0;}
+  /* Guarantees a minimum gap when a card has little content above the bar */
+  .kpi .klab{margin-bottom:8px;}
   .kpi .kbar i{display:block;height:100%;border-radius:inherit;background:rgba(255,255,255,.85);
     width:0;transition:width 1.1s var(--ease-out);}
 
@@ -194,8 +197,9 @@
   .kpigrid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:14px;}
   /* With the overdue card present the row becomes 2×2, so nothing is stranded
      at a third of the width on its own line. */
-  .kpigrid.has4{grid-template-columns:repeat(2,1fr);}
+  .kpigrid.has4{grid-template-columns:repeat(2,1fr);grid-auto-rows:1fr;}
   .kpi{
+    display:flex;flex-direction:column;align-items:flex-start;
     border-radius:16px;padding:13px 11px 12px;color:#fff;position:relative;overflow:hidden;
     user-select:none;cursor:default;border:1px solid rgba(255,255,255,.08);
     transition:transform .22s var(--ease-spring),box-shadow .22s;
@@ -485,6 +489,7 @@ const I18N = {
   srtNew:{en:'Newest', ta:'புதியது'}, srtOver:{en:'Overdue first', ta:'தாமதம் முதலில்'},
   sortBy:{en:'Sort', ta:'வரிசை'},
   asof:{en:'Data as of', ta:'தரவு தேதி'},
+  snap:{en:'card made', ta:'அட்டை தேதி'},
   stale:{en:'⚠️ This passbook snapshot is #D days old. Recent payments or renewals may not be shown — ask the shop for a fresh link or card.', ta:'⚠️ இந்த பாஸ்புக் தரவு #D நாட்கள் பழையது. சமீபத்திய கட்டணங்கள் காட்டப்படாமல் இருக்கலாம் — புதிய இணைப்பு/கார்டு கேட்கவும்.'},
   pledged:{en:'Pledged on', ta:'அடகு தேதி'}, duedate:{en:'Due date', ta:'கெடு தேதி'},
   lastpay:{en:'Last payment', ta:'கடைசி கட்டணம்'}, rate:{en:'Interest rate', ta:'வட்டி விகிதம்'},
@@ -997,7 +1002,7 @@ function renderBook() {
   let h = `
     <div class="sumhero">
       <div class="av">${initials}</div>
-      <div><div class="nm">${esc(P.cn)}</div><div class="asof">${T('asof')}: ${fmtD(P.gen)} · ${fmtD(asOf)}</div></div>
+      <div><div class="nm">${esc(P.cn)}</div><div class="asof">${T('asof')}: ${fmtD(asOf)}${P.gen && P.gen !== asOf ? ' · ' + T('snap') + ' ' + fmtD(P.gen) : ''}</div></div>
     </div>
     <div class="kpigrid${overdueCt ? ' has4' : ''}">
       <div class="kpi"><div class="sheen"></div><div class="shimmer"></div>
