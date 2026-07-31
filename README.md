@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ta">
 <head>
@@ -253,6 +252,71 @@
   .payamt span{font-size:12px;font-weight:800;color:#5C4A1E;}
   .payamt input{flex:1;min-width:0;padding:8px 10px;border:1.5px solid #E4D8B8;border-radius:10px;font-family:inherit;font-size:14px;font-weight:800;color:#2C1F0A;background:#FFFDF4;outline:none;transition:border-color .2s,box-shadow .2s;}
   .payamt input:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(201,168,76,.16);}
+  .settle{display:flex;justify-content:space-between;align-items:center;gap:12px;
+    background:linear-gradient(135deg,#123726,#0C2A1C);border:1px solid rgba(126,217,160,.3);
+    border-radius:16px;padding:13px 15px;margin-bottom:12px;animation:cardIn .45s var(--ease-out) .04s both;}
+  .settle .st-t{font-size:12px;font-weight:800;color:#B9F0CE;}
+  .settle .st-s{font-size:10px;color:rgba(185,240,206,.62);margin-top:2px;}
+  .settle .st-r{text-align:right;flex-shrink:0;}
+  .settle .st-v{font-size:20px;font-weight:800;color:#fff;letter-spacing:-.02em;}
+  .settle .st-b{display:inline-block;margin-top:5px;text-decoration:none;font-size:10.5px;font-weight:800;
+    padding:6px 12px;border-radius:999px;background:linear-gradient(135deg,#25D366,#128C7E);color:#fff;}
+  .tools{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:12px;
+    animation:fadeUp .45s var(--ease-out) .12s both;}
+  .tools .tl{border:1px solid rgba(232,201,122,.24);background:rgba(255,255,255,.03);
+    color:rgba(252,246,233,.76);border-radius:999px;padding:7px 12px;font:inherit;font-size:10.5px;
+    font-weight:800;cursor:pointer;transition:transform .15s var(--ease-spring),background .18s;}
+  .tools .tl:active{transform:scale(.94);} .tools .tl:hover{background:rgba(232,201,122,.12);}
+  .tsz{display:inline-flex;gap:2px;margin-left:auto;background:rgba(255,255,255,.04);
+    border:1px solid rgba(232,201,122,.2);border-radius:999px;padding:3px;}
+  .tsz button{border:none;background:transparent;color:rgba(252,246,233,.6);font-family:inherit;
+    font-weight:800;padding:4px 10px;border-radius:999px;cursor:pointer;line-height:1;}
+  .tsz button.on{background:rgba(201,168,76,.3);color:#F3E4BC;}
+  .jph{width:100%;max-height:190px;object-fit:cover;border-radius:12px;margin:10px 0 0;
+    border:1px solid #E4D8B8;background:#FFFDF4;display:block;animation:fadeUp .4s var(--ease-out) both;}
+  .rnw-tag{display:inline-block;margin-top:9px;font-size:9.5px;font-weight:800;color:#8A5A00;
+    background:#FFF3E0;border:1px solid #F0C97A;border-radius:999px;padding:4px 10px;}
+  .renew{margin-top:10px;padding:9px 12px;border-radius:12px;background:#EEF4FF;border:1px solid #C3D6F5;}
+  .renew .rn-t{font-size:11px;font-weight:800;color:#1A4A8C;}
+  .renew .rn-s{font-size:10.5px;color:#3C5F91;margin-top:3px;line-height:1.5;}
+
+  @media print{
+    /* A statement the customer can keep: drop the dark theme and every control,
+       and let the cards break naturally across pages. */
+    .no-print,.lockwrap,.langbar,.paybtns,.planner,.pl-rem,.confirm,.cta{display:none!important;}
+    body{background:#fff!important;color:#111!important;}
+    .pcard,.sumhero,.kpi{background:#fff!important;border:1px solid #bbb!important;
+      box-shadow:none!important;color:#111!important;break-inside:avoid;}
+    .sumhero .nm,.kval,.pcard *{color:#111!important;}
+    .jph{max-height:120px;}
+    *{animation:none!important;transition:none!important;}
+    @page{margin:12mm;}
+  }
+
+  .stepwarn{background:#F7F4EC;border:1px solid #E2DACA;
+    border-radius:12px;padding:9px 12px;margin:10px 0 0;animation:cardIn .4s var(--ease-out) both;}
+  .stepwarn .sw-t{font-size:11px;font-weight:800;color:#6B5A32;line-height:1.45;}
+  .stepwarn .sw-s{font-size:10px;color:#8A7A5A;margin-top:3px;}
+  .stepwarn.soon{background:linear-gradient(135deg,#FFF4E0,#FFF9EE);border-color:#F0C97A;
+    box-shadow:0 2px 10px rgba(240,201,122,.28);}
+  .stepwarn.soon .sw-t{color:#8A5A00;}
+  .stepwarn.soon .sw-s{color:#A07A2E;}
+  .planner{margin-top:10px;padding:10px 12px;border:1px dashed #E0D3AE;border-radius:12px;background:#FFFDF6;}
+  .planner .pl-h{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:#8A7350;margin-bottom:7px;}
+  .planner .pl-r{display:flex;gap:6px;}
+  .planner input[type=date]{flex:1;min-width:0;font:inherit;font-size:12px;font-weight:700;color:#3D2B0F;
+    padding:8px 10px;border:1.5px solid #E4D8B8;border-radius:9px;background:#fff;}
+  .planner .pl-rem{flex:0 0 auto;font:inherit;font-size:10.5px;font-weight:800;color:#5C4A1E;
+    padding:8px 11px;border:1.5px solid #E4D8B8;border-radius:9px;background:#FFF8E8;cursor:pointer;
+    transition:transform .15s var(--ease-spring),background .18s;}
+  .planner .pl-rem:active{transform:scale(.95);} .planner .pl-rem:hover{background:#FBEFD2;}
+  .planner .pl-o{margin-top:8px;}
+  .planner .pl-tot{display:flex;justify-content:space-between;align-items:baseline;gap:8px;
+    font-size:11px;color:#6B5A32;animation:fadeUp .3s var(--ease-out) both;}
+  .planner .pl-tot b{font-size:15px;color:#3D2B0F;}
+  .planner .pl-d{margin-top:3px;font-size:10.5px;font-weight:700;}
+  .planner .pl-d .up{color:#B4520F;} .planner .pl-d .ok{color:#1A5C2C;}
+  .planner .pw{font-size:10.5px;color:#B42318;font-weight:700;}
   .paybtns{display:grid;grid-template-columns:repeat(auto-fit,minmax(52px,1fr));gap:5px;}
   .paybtns a{display:block;text-align:center;text-decoration:none;font-size:9px;font-weight:800;padding:9px 2px;border-radius:10px;border:1px solid #ddd;background:#fff;transition:transform .15s var(--ease-spring),box-shadow .15s;}
   .paybtns a:hover{box-shadow:0 4px 12px rgba(0,0,0,.1);transform:translateY(-2px);}
@@ -379,6 +443,27 @@ const I18N = {
   wrong:{en:'Wrong PIN — please try again', ta:'தவறான PIN — மீண்டும் முயற்சிக்கவும்'},
   active:{en:'Active', ta:'செயலில்'}, duetoday:{en:'Due Today', ta:'இன்று செலுத்த'}, principal:{en:'Principal', ta:'அசல்'},
   overdue:{en:'Overdue', ta:'தாமதம்'},
+  planTitle:{en:'Planning to pay later?', ta:'பின்னர் செலுத்த திட்டமா?'},
+  planPick:{en:'Pick a date', ta:'தேதியைத் தேர்வு செய்க'},
+  planTot:{en:'Total on that day', ta:'அன்றைய மொத்தம்'},
+  planMore:{en:'more than today', ta:'இன்றை விட அதிகம்'},
+  planSame:{en:'same as today', ta:'இன்று போலவே'},
+  stepWarn:{en:'Interest rises by #A on #D', ta:'#D அன்று வட்டி #A உயரும்'},
+  stepTip:{en:'Paying before that date saves #A', ta:'அதற்கு முன் செலுத்தினால் #A மிச்சம்'},
+  remind:{en:'Remind me', ta:'நினைவூட்டு'},
+  days:{en:'days', ta:'நாட்கள்'},
+  settleT:{en:'Settle everything today', ta:'இன்று அனைத்தையும் அடைக்க'},
+  settleS:{en:'#N pledges · closes all of them', ta:'#N அடகுகள் · அனைத்தும் முடியும்'},
+  settlePay:{en:'Pay total now', ta:'மொத்தமும் செலுத்து'},
+  remindAll:{en:'Remind me about all', ta:'அனைத்தையும் நினைவூட்டு'},
+  txtSize:{en:'Text size', ta:'எழுத்து அளவு'},
+  directions:{en:'Directions to shop', ta:'கடைக்கு வழி'},
+  printBtn:{en:'Print / Save PDF', ta:'அச்சிடு / PDF'},
+  renewT:{en:'Renew instead of closing', ta:'முடிக்காமல் புதுப்பிக்க'},
+  renewS:{en:'Pay only the interest #A — due date moves to #D', ta:'வட்டி #A மட்டும் — கெடு #D ஆகும்'},
+  renewedN:{en:'Renewed #N time(s)', ta:'#N முறை புதுப்பிக்கப்பட்டது'},
+  renewedOn:{en:'last on #D', ta:'கடைசியாக #D'},
+  photoAlt:{en:'Pledged item', ta:'அடகு பொருள்'},
   srtDue:{en:'Due date', ta:'கெடு தேதி'}, srtAmt:{en:'Amount', ta:'தொகை'},
   srtNew:{en:'Newest', ta:'புதியது'}, srtOver:{en:'Overdue first', ta:'தாமதம் முதலில்'},
   sortBy:{en:'Sort', ta:'வரிசை'},
@@ -498,6 +583,125 @@ function calcDue(it, asOf) {
   }
   return { days, extraMonths: em, interest, total: (it.pr||0) + interest };
 }
+
+function addDaysISO(iso, n) {
+  const d = new Date(iso + 'T00:00:00');
+  d.setDate(d.getDate() + n);
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+
+// The rule in calcDue(): nothing for the first 35 days, then a fresh month of
+// interest every 30 days. So the jumps land on day 36, 66, 96 … and the next
+// one is always computable from today.
+function nextStepUp(it, asOf) {
+  const base = it.lp || it.d;
+  if (!base) return null;
+  const days = daysBetween(base, asOf);
+  const b = days < 36 ? 36 : 36 + 30 * (Math.floor((days - 36) / 30) + 1);
+  const when = addDaysISO(base, b);
+  const now  = calcDue(it, asOf);
+  const then = calcDue(it, when);
+  const jump = Math.round(then.total - now.total);
+  if (jump <= 0) return null;
+  return { date: when, jump, inDays: daysBetween(asOf, when) };
+}
+
+// A .ics file works with every phone calendar and needs no app or account.
+function remindICS(it, dateISO, label) {
+  const stamp = dateISO.replace(/-/g, '');
+  const uid = 'pb-' + (it.b || 'x') + '-' + stamp + '@sivajibank';
+  const ics = [
+    'BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Sivaji Bank//Passbook//EN',
+    'BEGIN:VEVENT','UID:' + uid,
+    'DTSTAMP:' + stamp + 'T090000Z',
+    'DTSTART;VALUE=DATE:' + stamp,
+    'SUMMARY:' + label,
+    'DESCRIPTION:' + (P.sn || 'Pawnshop') + (P.sp ? ' \u00b7 ' + P.sp : ''),
+    'BEGIN:VALARM','TRIGGER:-P1D','ACTION:DISPLAY','DESCRIPTION:' + label,'END:VALARM',
+    'END:VEVENT','END:VCALENDAR'
+  ].join('\r\n');
+  const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'pledge-' + (it.b || 'reminder') + '.ics';
+  document.body.appendChild(a); a.click();
+  setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 400);
+}
+window._pbRemind = function(idx){
+  const it = P.p[idx]; if (!it) return;
+  const st = nextStepUp(it, todayS());
+  const when = st ? st.date : (it.dd || todayS());
+  remindICS(it, when, (P.sn || 'Pawnshop') + ' \u00b7 Pledge ' + (it.b || '') );
+};
+
+// Recalculates one pledge for a date the customer chooses. calcDue already
+// accepts any date, so this is the same engine, not a second one that could
+// drift out of step with the counter.
+// One number for "how much to walk out clean today", plus a single UPI link.
+// The most common question at the counter, and it was previously unanswerable
+// without adding the cards up by hand.
+window._pbSettleAll = function(){
+  const t = todayS();
+  let total = 0;
+  P.p.forEach(function(it){ total += calcDue(it, t).total; });
+  return Math.round(total);
+};
+
+window._pbRemindAll = function(){
+  const t = todayS(), evts = [];
+  P.p.forEach(function(it){
+    const st = nextStepUp(it, t);
+    if (st) evts.push({ it: it, date: st.date });
+  });
+  if (!evts.length) return;
+  const lines = ['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Sivaji Bank//Passbook//EN'];
+  evts.forEach(function(e){
+    const stamp = e.date.replace(/-/g,'');
+    lines.push('BEGIN:VEVENT',
+      'UID:pb-' + (e.it.b||'x') + '-' + stamp + '@sivajibank',
+      'DTSTAMP:' + stamp + 'T090000Z',
+      'DTSTART;VALUE=DATE:' + stamp,
+      'SUMMARY:' + (P.sn||'Pawnshop') + ' \u00b7 Pledge ' + (e.it.b||''),
+      'DESCRIPTION:Interest rises on this date' + (P.sp ? ' \u00b7 ' + P.sp : ''),
+      'BEGIN:VALARM','TRIGGER:-P1D','ACTION:DISPLAY',
+      'DESCRIPTION:Pledge ' + (e.it.b||'') + ' interest rises tomorrow','END:VALARM',
+      'END:VEVENT');
+  });
+  lines.push('END:VCALENDAR');
+  const blob = new Blob([lines.join('\r\n')], { type:'text/calendar;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'my-pledges.ics';
+  document.body.appendChild(a); a.click();
+  setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 400);
+};
+
+// Hands the shop address to whichever map app the phone uses.
+window._pbDirections = function(){
+  const q = encodeURIComponent([P.sn, P.ad].filter(Boolean).join(', '));
+  window.open('https://www.google.com/maps/search/?api=1&query=' + q, '_blank');
+};
+
+window._pbPrint = function(){ window.print(); };
+
+window._pbPlanDate = function(idx){
+  const it = P.p[idx]; if (!it) return;
+  const inp = document.getElementById('plan-d-' + idx);
+  const out = document.getElementById('plan-o-' + idx);
+  if (!inp || !out) return;
+  const pick = inp.value;
+  if (!pick) { out.innerHTML = ''; return; }
+  const today = todayS();
+  if (pick < today) { out.innerHTML = '<span class="pw">' + fmtD(pick) + ' is in the past.</span>'; return; }
+  const now = calcDue(it, today), then = calcDue(it, pick);
+  const diff = Math.round(then.total - now.total);
+  out.innerHTML =
+    '<div class="pl-tot"><span>' + T('planTot') + ' \u00b7 ' + fmtD(pick) + '</span>' +
+    '<b class="num">' + fmtR(Math.round(then.total)) + '</b></div>' +
+    '<div class="pl-d">' + (diff > 0
+      ? '<span class="up">+' + fmtR(diff) + ' ' + T('planMore') + '</span>'
+      : '<span class="ok">' + T('planSame') + '</span>') + '</div>';
+};
 
 function upiLink(scheme, amt, bill) {
   const q = 'pa=' + encodeURIComponent(P.upi.pa)
@@ -676,6 +880,22 @@ function unlock() {
 // Runs only once the PIN is accepted, so an unopened link never touches the
 // network. Every failure is silent and leaves the snapshot on screen: a
 // customer with no signal is no worse off than before live sync existed.
+// Older customers squint at this on a phone. Three steps, remembered, applied
+// as a root font-size so every measurement scales with it.
+let TSIZE = (function(){ try { return parseInt(localStorage.getItem('pb_tsize')) || 0; } catch(e) { return 0; } })();
+function applyTsize(){
+  document.documentElement.style.fontSize = [16, 17.6, 19.4][TSIZE] + 'px';
+}
+applyTsize();   // restore the saved size as soon as it is safe to do so
+
+window._pbTsize = function(n){
+  TSIZE = n; try { localStorage.setItem('pb_tsize', String(n)); } catch(e){}
+  applyTsize();
+  [].slice.call(document.querySelectorAll('.tsz button')).forEach(function(b,i){
+    b.classList.toggle('on', i === n);
+  });
+};
+
 let SORT = (function(){ try { return localStorage.getItem('pb_sort') || 'due'; } catch(e) { return 'due'; } })();
 let _pbBannerState = null;
 function pbLiveBanner(kind, text) {
@@ -757,6 +977,34 @@ function renderBook() {
 
   if (genAge > 7) h += `<div class="stale">${T('stale').replace('#D', genAge)}</div>`;
 
+  // "Settle everything" only makes sense with more than one open pledge —
+  // with a single pledge its own card already shows the same number.
+  if (P.p.length > 1) {
+    const st = _pbSettleAll();
+    h += `<div class="settle no-print">
+      <div class="st-l">
+        <div class="st-t">${T('settleT')}</div>
+        <div class="st-s">${T('settleS').replace('#N', P.p.length)}</div>
+      </div>
+      <div class="st-r">
+        <div class="st-v num">${fmtR(st)}</div>
+        ${P.upi && P.upi.pa ? `<a class="st-b" href="${upiLink('upi', st, 'ALL')}">${T('settlePay')}</a>` : ''}
+      </div>
+    </div>`;
+  }
+
+  // Utility row — reminders, directions, print, text size.
+  h += `<div class="tools no-print">
+    <button class="tl" onclick="_pbRemindAll()">🔔 ${T('remindAll')}</button>
+    ${P.ad ? `<button class="tl" onclick="_pbDirections()">📍 ${T('directions')}</button>` : ''}
+    <button class="tl" onclick="_pbPrint()">🖨 ${T('printBtn')}</button>
+    <div class="tsz" title="${T('txtSize')}">
+      <button class="${TSIZE===0?'on':''}" onclick="_pbTsize(0)" style="font-size:11px;">A</button>
+      <button class="${TSIZE===1?'on':''}" onclick="_pbTsize(1)" style="font-size:13px;">A</button>
+      <button class="${TSIZE===2?'on':''}" onclick="_pbTsize(2)" style="font-size:15px;">A</button>
+    </div>
+  </div>`;
+
   // With one or two pledges the chips are noise; past that, finding the one
   // the customer is asking about matters more than the original order.
   if (P.p.length > 2) {
@@ -810,6 +1058,42 @@ function renderBook() {
         ? `<div class="duebar"><span class="l">${T('totnow')}</span><span class="v">${fmtR(d.total)}</span></div>
            <div class="mnote">${T('months').replace('#M', d.extraMonths)}</div>`
         : `<div class="duebar zero"><span class="l">${T('grace')}</span><span class="v">✓</span></div>`}
+      ${it.ph ? `<img class="jph" src="${it.ph}" alt="${T('photoAlt')}" loading="lazy">` : ''}
+      ${it.rn ? `<div class="rnw-tag">🔁 ${T('renewedN').replace('#N', it.rn)}${
+        it.rd ? ' · ' + T('renewedOn').replace('#D', fmtD(it.rd)) : ''}</div>` : ''}
+      ${(function(){
+        // Renewing pays only the interest and pushes the clock forward. Shops
+        // know this; customers often do not, and it is frequently the cheaper
+        // option when they cannot clear the principal yet.
+        const dd = calcDue(it, asOf);
+        if (!dd.interest || dd.interest < 1) return '';
+        const nd = addDaysISO(asOf, 30);
+        return `<div class="renew">
+          <div class="rn-t">🔁 ${T('renewT')}</div>
+          <div class="rn-s">${T('renewS').replace('#A', fmtR(Math.round(dd.interest))).replace('#D', fmtD(nd))}</div>
+        </div>`;
+      })()}
+      ${(function(){
+        const st = nextStepUp(it, asOf);
+        if (!st) return '';
+        // Shown on every pledge so the customer always knows what the next
+        // month will cost. Two states, because a notice that looks identical
+        // for thirty days stops being read: calm while there is time, urgent
+        // in the last stretch when paying early still changes the amount.
+        const soon = st.inDays <= 12;
+        return `<div class="stepwarn${soon ? ' soon' : ''}">
+          <div class="sw-t">${soon ? '⚠️' : '📈'} ${T('stepWarn').replace('#A', fmtR(st.jump)).replace('#D', fmtD(st.date))}</div>
+          <div class="sw-s">${T('stepTip').replace('#A', fmtR(st.jump))} · ${st.inDays} ${T('days')}</div>
+        </div>`;
+      })()}
+      <div class="planner">
+        <div class="pl-h">📅 ${T('planTitle')}</div>
+        <div class="pl-r">
+          <input type="date" id="plan-d-${i}" min="${asOf}" onchange="_pbPlanDate(${i})" aria-label="${T('planPick')}">
+          <button class="pl-rem" onclick="_pbRemind(${i})">🔔 ${T('remind')}</button>
+        </div>
+        <div class="pl-o" id="plan-o-${i}"></div>
+      </div>
       ${P.upi && P.upi.pa ? payBlock(i, it, d) : ''}
       ${it.pm && it.pm.length ? histBlock(it) : ''}
     </div>`;
