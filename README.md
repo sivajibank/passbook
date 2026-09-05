@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ta">
 <head>
@@ -6,7 +7,9 @@
 <meta name="robots" content="noindex, nofollow">
 <meta http-equiv="Cache-Control" content="no-cache, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
-<!-- PASSBOOK VIEWER v11 — Latest-gen UI/UX: aurora backdrop, glassmorphic animated
+<!-- PASSBOOK VIEWER v12 — enforces the shop's Include-in-passbook switches on
+     live records, and a Scan Lock that survives a page refresh.
+     v11 — Latest-gen UI/UX: aurora backdrop, glassmorphic animated
      KPI cards (orbs + sheen + shimmer + count-up, matching main app v183 dashboard),
      scroll-reveal pledge cards, animated unlock sequence, reduced-motion safe.
      ALL v9 logic preserved: LZString fragment payload, PIN gate, tiered/compound
@@ -504,7 +507,7 @@ var LZString=function(){var r=String.fromCharCode,o="ABCDEFGHIJKLMNOPQRSTUVWXYZa
 <script>
 'use strict';
 // ═══════════════════════════════════════════════════════════════════════════
-// Customer Passbook Viewer v11.1 — Sivaji Bank Pawnshop Manager
+// Customer Passbook Viewer v12 — Sivaji Bank Pawnshop Manager
 // Data arrives compressed in the URL fragment (#...) — nothing is ever sent
 // to any server. PIN gate is a privacy speed-bump, matching the app's model.
 // Supports payload v1 (active pledges only) and v2 (+ payment history,
@@ -888,6 +891,14 @@ let SECLEN = 4, _pinPrev = 0;   // declared before boot() so buildPinUI() can us
   else document.addEventListener('DOMContentLoaded', buildPinUI);
   setLang(LANG);
   setTimeout(()=>document.getElementById('pin').focus(), 300);
+  // A card locked a moment ago must still look locked after a refresh —
+  // that refresh is exactly what used to clear it.
+  const _showLockIfAny = () => {
+    try { const lk = _lockRead(); if (Date.now() < lk.until) showLocked(lk.until); } catch(e) {}
+  };
+  _showLockIfAny();
+  document.addEventListener('DOMContentLoaded', _showLockIfAny);
+  setTimeout(_showLockIfAny, 0);
 })();
 
 // ── Liquid-glass PIN input driver ────────────────────────────────────────────
@@ -966,7 +977,8 @@ function pinSync() {
     }, 750);
   }
   _pinPrev = v.length;
-  const err = document.getElementById('g-err'); if (err) err.textContent = '';
+  const err = document.getElementById('g-err');
+  if (err && !(Date.now() < _lockRead().until)) err.textContent = '';
   if (v.length === SECLEN) setTimeout(unlock, 450);
 }
 function padKey(k) {
@@ -978,27 +990,78 @@ function padKey(k) {
 }
 function pinReset() { const inp = document.getElementById('pin'); if (inp) inp.value = ''; _pinPrev = 0; pinSync(); }
 
-let _pinTries = 0, _pinLockUntil = 0;
+// Per-card lockout state, persisted so a page refresh no longer clears it.
+// Keyed off the live record id when there is one, else a hash of the card's
+// own details, so locking one customer's card never locks another's.
+function _lockKey() {
+  try {
+    const base = (LIVE && LIVE.id) ? LIVE.id : (((P && P.cn) || '') + '|' + ((P && P.sec) || ''));
+    let h = 0;
+    for (let i = 0; i < base.length; i++) h = (h * 31 + base.charCodeAt(i)) | 0;
+    return 'pb_lock_' + (h >>> 0).toString(36);
+  } catch(e) { return 'pb_lock_x'; }
+}
+function _lockRead() {
+  try { const v = JSON.parse(localStorage.getItem(_lockKey()) || '{}');
+        return { n: v.n || 0, until: v.until || 0 }; }
+  catch(e) { return { n: 0, until: 0 }; }
+}
+function _lockWrite(st) {
+  try { localStorage.setItem(_lockKey(), JSON.stringify(st)); } catch(e) {}
+}
+function _lockClear() { try { localStorage.removeItem(_lockKey()); } catch(e) {} }
+
+// 5 free attempts, then an escalating wait: 15s, 1m, 4m, capped at 15m. Long
+// enough to stop guessing a 4-digit PIN, short enough that a customer who has
+// genuinely forgotten theirs is not shut out for the day.
+const _LOCK_FREE = 5, _LOCK_MAX = 900;
+function _lockDelay(n) {
+  const step = n - _LOCK_FREE;                    // 0 on the 5th wrong attempt
+  if (step < 0) return 0;
+  return Math.min(_LOCK_MAX, 15 * Math.pow(4, step)) * 1000;
+}
+let _lockTimer = null;
+function showLocked(until) {
+  if (_lockTimer) { clearInterval(_lockTimer); _lockTimer = null; }
+  const el = document.getElementById('g-err');
+  const tick = () => {
+    const ms = until - Date.now();
+    if (ms <= 0) {
+      clearInterval(_lockTimer); _lockTimer = null;
+      if (el) el.textContent = '';
+      return;
+    }
+    const s = Math.ceil(ms / 1000);
+    const txt = s >= 60 ? Math.ceil(s / 60) + (LANG === 'ta' ? ' நிமிடம்' : ' min') : s + (LANG === 'ta' ? ' வினாடி' : 's');
+    if (el) el.textContent = (LANG === 'ta'
+      ? '🔒 அதிக முயற்சிகள் — ' + txt + ' காத்திருக்கவும்'
+      : '🔒 Too many attempts — wait ' + txt);
+  };
+  tick();
+  _lockTimer = setInterval(tick, 1000);
+}
+
 function unlock() {
   const gate = document.getElementById('gate');
   const val = (document.getElementById('pin').value || '').trim();
   if (!P) return;
-  if (Date.now() < _pinLockUntil) {
-    const secs = Math.ceil((_pinLockUntil - Date.now()) / 1000);
-    document.getElementById('g-err').textContent = (LANG === 'ta'
-      ? 'அதிக முயற்சிகள் — ' + secs + ' வினாடிகள் காத்திருக்கவும்'
-      : 'Too many attempts — wait ' + secs + 's');
-    return;
-  }
+  const _lk = _lockRead();
+  if (Date.now() < _lk.until) { showLocked(_lk.until); return; }
   if (val !== String(P.sec||'')) {
-    _pinTries++;
+    const n = _lk.n + 1;
+    const wait = _lockDelay(n);
+    _lockWrite({ n: n, until: wait ? Date.now() + wait : 0 });
     gate.classList.remove('err'); void gate.offsetWidth; gate.classList.add('err');
-    document.getElementById('g-err').textContent = T('wrong');
-    if (_pinTries >= 5) { _pinLockUntil = Date.now() + 15000; _pinTries = 0; }
+    if (wait) showLocked(Date.now() + wait);
+    else {
+      const left = _LOCK_FREE - n;
+      document.getElementById('g-err').textContent = T('wrong') +
+        (left <= 2 ? (LANG === 'ta' ? ' — இன்னும் ' + left + ' முயற்சி' : ' — ' + left + ' attempt' + (left === 1 ? '' : 's') + ' left') : '');
+    }
     setTimeout(pinReset, 550);
     return;
   }
-  _pinTries = 0;
+  _lockClear();
   // Animated unlock: gate glides out, then the book cascades in.
   const show = () => {
     gate.style.display = 'none';
@@ -1076,8 +1139,22 @@ function pbRefreshLive() {
     });
 }
 
+// What the shop has allowed this card to show. Absent on cards issued before
+// v12, which keep their old behaviour (show whatever the payload contains).
+// When present it is authoritative: data that arrives but is not permitted is
+// dropped here, so a stale or half-updated live record cannot leak a section
+// the shop has switched off.
+function applyOpts() {
+  const o = P && P.o;
+  if (!o) return;
+  if (!o.pm) (P.p || []).forEach(it => { delete it.pm; });
+  if (!o.cl) delete P.cl;
+  if (!o.up) delete P.upi;
+}
+
 function renderBook() {
   const asOf = todayS();
+  applyOpts();
   // Silently omit pledges older than 450 days (from pledge date). Recomputed on
   // every open, so a pledge that crosses the limit after the QR was printed
   // disappears automatically. Idempotent — safe on language-toggle re-render.
