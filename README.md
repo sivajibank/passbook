@@ -6,7 +6,9 @@
 <meta name="robots" content="noindex, nofollow">
 <meta http-equiv="Cache-Control" content="no-cache, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
-<!-- PASSBOOK VIEWER v14 — Latest-gen UI/UX: aurora backdrop, glassmorphic animated
+<!-- PASSBOOK VIEWER v15 — encrypted links (E1): the customer's PIN decrypts the data on the phone;
+     the PIN is no longer inside the link. Old links still open.
+     PASSBOOK VIEWER v14 — Latest-gen UI/UX: aurora backdrop, glassmorphic animated
      KPI cards (orbs + sheen + shimmer + count-up, matching main app v183 dashboard),
      scroll-reveal pledge cards, animated unlock sequence, reduced-motion safe.
      ALL v9 logic preserved: LZString fragment payload, PIN gate, tiered/compound
@@ -1035,9 +1037,52 @@ function payAmtChanged(idx) {
 
 // ── Boot: decode fragment ───────────────────────────────────────────────────
 let SECLEN = 4, _pinPrev = 0;   // declared before boot() so buildPinUI() can use them
+// v15 · encrypted link: E1.<header>.<salt>.<nonce>.<ciphertext>.<tag>
+// key = PBKDF2-SHA256(PIN, salt, 120000); keystream = HMAC-SHA256(Kenc, nonce||counter);
+// tag = HMAC-SHA256(Kmac, header||nonce||ciphertext) — a wrong PIN decrypts nothing.
+let ENC = null;
+function _u8cat() { let n = 0; for (const a of arguments) n += a.length; const o = new Uint8Array(n); let p = 0; for (const a of arguments) { o.set(a, p); p += a.length; } return o; }
+async function _hkey(raw) { return crypto.subtle.importKey('raw', raw, { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']); }
+async function _hmac(key, msg) { return new Uint8Array(await crypto.subtle.sign('HMAC', key, msg)); }
+async function decEnc(pin) {
+  try {
+    const te = new TextEncoder();
+    const base = await crypto.subtle.importKey('raw', te.encode(pin), 'PBKDF2', false, ['deriveBits']);
+    const K = new Uint8Array(await crypto.subtle.deriveBits({ name: 'PBKDF2', salt: ENC.salt, iterations: 120000, hash: 'SHA-256' }, base, 256));
+    const kK = await _hkey(K);
+    const Ke = await _hmac(kK, te.encode('enc')), Km = await _hmac(kK, te.encode('mac'));
+    const tag = (await _hmac(await _hkey(Km), _u8cat(ENC.hdrB, ENC.nonce, ENC.ct))).subarray(0, 16);
+    let diff = tag.length ^ ENC.tag.length;
+    for (let i = 0; i < Math.min(tag.length, ENC.tag.length); i++) diff |= tag[i] ^ ENC.tag[i];
+    if (diff) return false;
+    const ke = await _hkey(Ke), ct = ENC.ct, pt = new Uint8Array(ct.length), jobs = [];
+    for (let off = 0, c = 0; off < ct.length; off += 32, c++) jobs.push(_hmac(ke, _u8cat(ENC.nonce, new Uint8Array([c >>> 24, c >>> 16, c >>> 8, c]))).then(ks => { for (let i = 0; i < 32 && off + i < ct.length; i++) pt[off + i] = ct[off + i] ^ ks[i]; }));
+    await Promise.all(jobs);
+    const obj = JSON.parse(LZString.decompressFromUint8Array(pt));
+    if (!obj || !obj.p || !Array.isArray(obj.p.p)) return false;
+    P = obj.p;
+    if (obj.lv && obj.lv.u) LIVE = { url: obj.lv.u, id: obj.lv.id, key: obj.lv.k };
+    return true;
+  } catch (e) { return false; }
+}
 (function boot(){
   try {
     let frag = location.hash.replace(/^#/, '');
+    if (frag.indexOf('E1.') === 0) {
+      const parts = frag.split('.');
+      if (parts.length !== 6) throw 0;
+      const hdrB = b64uDec(parts[1]);
+      ENC = { hdr: JSON.parse(new TextDecoder().decode(hdrB)), hdrB, salt: b64uDec(parts[2]), nonce: b64uDec(parts[3]), ct: b64uDec(parts[4]), tag: b64uDec(parts[5]) };
+      if (!(window.crypto && crypto.subtle)) throw 0;
+      document.getElementById('h-shop').textContent = '📘 ' + (ENC.hdr.sn || 'Passbook');
+      if (ENC.hdr.st) { const e = document.getElementById('h-shopta'); e.textContent = ENC.hdr.st; e.style.display = 'block'; }
+      document.getElementById('g-cn').textContent = '';
+      if (document.getElementById('lg-pins')) buildPinUI();
+      else document.addEventListener('DOMContentLoaded', buildPinUI);
+      setLang(LANG);
+      setTimeout(() => document.getElementById('pin').focus(), 300);
+      return;
+    }
     // A live card looks like  L.<b64u worker url>.<record id>.<key>.<snapshot>
     // The snapshot still rides on the end, so the page opens instantly and
     // works with no signal; the fetch happens after the PIN, never before.
@@ -1077,7 +1122,7 @@ function revealFallbackInput() {
 }
 function buildPinUI() {
   try {
-    SECLEN = Math.min(8, Math.max(4, String((P && P.sec) || '').length || 4));
+    SECLEN = Math.min(8, Math.max(4, (ENC ? +ENC.hdr.pl : String((P && P.sec) || '').length) || 4));
     const pins = document.getElementById('lg-pins');
     if (pins) {
       pins.setAttribute('role', 'group');
@@ -1159,7 +1204,7 @@ let _pinTries = 0, _pinLockUntil = 0;
 function unlock() {
   const gate = document.getElementById('gate');
   const val = (document.getElementById('pin').value || '').trim();
-  if (!P) return;
+  if (!P && !ENC) return;
   if (Date.now() < _pinLockUntil) {
     const secs = Math.ceil((_pinLockUntil - Date.now()) / 1000);
     document.getElementById('g-err').textContent = (LANG === 'ta'
@@ -1167,7 +1212,30 @@ function unlock() {
       : 'Too many attempts — wait ' + secs + 's');
     return;
   }
-  if (val !== String(P.sec||'')) {
+  if (ENC && !P) {
+    if (unlock._busy) return;
+    unlock._busy = true;
+    document.getElementById('g-err').textContent = LANG === 'ta' ? 'சரிபார்க்கிறது…' : 'Checking…';
+    decEnc(val).then(ok => {
+      unlock._busy = false;
+      document.getElementById('g-err').textContent = '';
+      if (ok) { unlock(); return; }
+      _pinTries++;
+      gate.classList.remove('err'); void gate.offsetWidth; gate.classList.add('err');
+      document.getElementById('g-err').textContent = T('wrong');
+      if (_pinTries >= 5) { _pinLockUntil = Date.now() + 15000; _pinTries = 0; }
+      setTimeout(pinReset, 550);
+    });
+    return;
+  }
+  if (P && P.ex) {   // v15 · link expiry chosen by the shop
+    const d = new Date(), today = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+    if (P.ex < today) {
+      document.getElementById('g-err').textContent = LANG === 'ta' ? 'இந்த இணைப்பு காலாவதியானது — கடையிடம் புதிய இணைப்பைக் கேளுங்கள்.' : 'This passbook link has expired — please ask the shop for a new one.';
+      return;
+    }
+  }
+  if (!ENC && val !== String(P.sec||'')) {
     _pinTries++;
     gate.classList.remove('err'); void gate.offsetWidth; gate.classList.add('err');
     document.getElementById('g-err').textContent = T('wrong');
