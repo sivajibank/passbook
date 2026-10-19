@@ -6,7 +6,7 @@
 <meta name="robots" content="noindex, nofollow">
 <meta http-equiv="Cache-Control" content="no-cache, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
-<!-- PASSBOOK VIEWER v12 — Latest-gen UI/UX: aurora backdrop, glassmorphic animated
+<!-- PASSBOOK VIEWER v14 — Latest-gen UI/UX: aurora backdrop, glassmorphic animated
      KPI cards (orbs + sheen + shimmer + count-up, matching main app v183 dashboard),
      scroll-reveal pledge cards, animated unlock sequence, reduced-motion safe.
      ALL v9 logic preserved: LZString fragment payload, PIN gate, tiered/compound
@@ -17,7 +17,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=DM+Serif+Display&family=Noto+Sans+Tamil:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
   /* ═══════════════════════════════════════════════════════════════════════
-     PASSBOOK VIEWER v12 — design system
+     PASSBOOK VIEWER v14 — design system
      One spacing scale, one type scale, one radius scale. Everything that sits
      in a row shares a height, everything in a column shares a left edge.
      ═══════════════════════════════════════════════════════════════════════ */
@@ -623,6 +623,10 @@
     html{scroll-behavior:auto;}
   }
 
+  /* v14 — duplicate receipt notice on a pledge card */
+  .dup-tag{display:block;margin:0 0 var(--s3);padding:9px 12px;border-radius:var(--r1,10px);
+    font-size:11.5px;font-weight:700;line-height:1.5;background:#FDF0E6;border:1px solid #E8C9A6;color:#8A4B12;}
+  @media print{ .dup-tag{background:#fff!important;color:#000!important;border:1px solid #444!important;} }
 </style>
 </head>
 <body>
@@ -673,7 +677,7 @@ var LZString=function(){var r=String.fromCharCode,o="ABCDEFGHIJKLMNOPQRSTUVWXYZa
 <script>
 'use strict';
 // ═══════════════════════════════════════════════════════════════════════════
-// Customer Passbook Viewer v12 — Sivaji Bank Pawnshop Manager
+// Customer Passbook Viewer v14 — Sivaji Bank Pawnshop Manager
 // Data arrives compressed in the URL fragment (#...) — nothing is ever sent
 // to any server. PIN gate is a privacy speed-bump, matching the app's model.
 // Supports payload v1 (active pledges only) and v2 (+ payment history,
@@ -711,6 +715,7 @@ const I18N = {
   gp:{en:'This passbook is protected. Enter the PIN given to you by the shop.', ta:'இந்த பாஸ்புக் பாதுகாக்கப்பட்டது. கடையில் வழங்கிய PIN-ஐ உள்ளிடவும்.'},
   gb:{en:'🔓 Unlock Passbook', ta:'🔓 பாஸ்புக்கைத் திற'},
   wrong:{en:'Wrong PIN — please try again', ta:'தவறான PIN — மீண்டும் முயற்சிக்கவும்'},
+  dupNote:{en:'🧾 Duplicate receipt #N — the original receipt is cancelled. Bring this duplicate when you come to redeem.', ta:'🧾 நகல் ரசீது #N — அசல் ரசீது ரத்து. மீட்கும்போது இந்த நகல் ரசீதை கொண்டு வாருங்கள்.'},
   active:{en:'Active', ta:'செயலில்'}, duetoday:{en:'Due Today', ta:'இன்று செலுத்த'}, principal:{en:'Principal', ta:'அசல்'},
   overdueN:{en:'Overdue', ta:'தாமதம்'},
   tapOver:{en:'tap to view', ta:'பார்க்க தட்டவும்'},
@@ -1410,6 +1415,7 @@ function renderBook() {
            <div class="mnote">${T('months').replace('#M', d.extraMonths)}</div>`
         : `<div class="duebar zero"><span class="l">${T('grace')}</span><span class="v">✓</span></div>`}
       ${it.ph ? `<img class="jph" src="${it.ph}" alt="${T('photoAlt')}" loading="lazy">` : ''}
+      ${it.dp ? `<div class="dup-tag">${T('dupNote').replace('#N', esc(it.dp))}</div>` : ''}
       ${it.rn ? `<div class="rnw-tag">🔁 ${T('renewedN').replace('#N', it.rn)}${
         it.rd ? ' · ' + T('renewedOn').replace('#D', fmtD(it.rd)) : ''}</div>` : ''}
       ${(function(){
@@ -1511,7 +1517,7 @@ function renderBook() {
       '</div>';
   }
   if (P.ad) f += `<div class="addr">📍 ${esc(P.ad)}</div>`;
-  f += `<div class="note">🔒 ${T('privacy')}<br><span style="opacity:.55;">viewer v12</span></div>`;
+  f += `<div class="note">🔒 ${T('privacy')}<br><span style="opacity:.55;">viewer v14</span></div>`;
   document.getElementById('foot').innerHTML = f;
 }
 
