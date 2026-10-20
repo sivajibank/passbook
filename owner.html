@@ -166,6 +166,8 @@ function render(D) {
     + '</div></div>';
   const R = D.recent || [];
   h += '<div class="card"><div class="h">Today at the counter</div>' + (R.length ? R.map(r => '<div class="row"><div><span class="tag t' + r[0] + '">' + ({ L: 'Loan', P: 'Paid', R: 'Redeem' }[r[0]] || r[0]) + '</span>' + esc(r[1]) + (r[2] ? ' · ' + esc(r[2]) : '') + (r[4] ? '<div class="m">' + esc(r[4]) + '</div>' : '') + '</div><b>' + inr(r[3]) + '</b></div>').join('') : '<div class="m" style="color:var(--muted);font-size:13px">Nothing yet today.</div>') + '</div>';
+  const DY = D.days || [];
+  if (DY.length) h += '<div class="card"><div class="h">Day closing reports</div>' + DY.map(x => { const f = x[1] || {}; return '<div class="row"><div>' + esc(x[0].split('-').reverse().join('/')) + '<div class="m">' + (f.nL || 0) + ' loans · ' + inr(f.aL) + ' given · ' + inr(f.aP) + ' received · ' + (f.nR || 0) + ' redeemed' + (f.close != null ? ' · closing ' + inr(f.close) : '') + '</div></div><b>' + inr(f.inc) + '</b></div>'; }).join('') + '</div>';
   const O = D.odTop || [];
   if (O.length) h += '<div class="card"><div class="h">Longest overdue</div>' + O.map(o => '<div class="row"><div>' + esc(o[0]) + (o[1] ? ' · ' + esc(o[1]) : '') + '<div class="m">' + o[2] + ' days</div></div><b>' + inr(o[3]) + '</b></div>').join('') + '</div>';
   document.getElementById('view').innerHTML = h;
