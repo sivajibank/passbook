@@ -10,62 +10,144 @@
 <meta name="mobile-web-app-capable" content="yes">
 <title>Shop Owner View</title>
 <!--
-  Owner phone view — v1 (Sivaji Bank Pawnshop Manager 3.12)
+  Owner phone view — v2 (Sivaji Bank Pawnshop Manager 3.13)
   Link: owner.html#O1.<hdr>.<salt>.<iv>.<ciphertext>
     The passcode unlocks (PBKDF2-SHA256 → AES-GCM) the address of the shop's
     encrypted summary and its 256-bit key. The summary is fetched from the shop's
-    own Worker and decrypted here. Read-only: this page never sends anything.
+    own Worker and decrypted here. Read-only: this page never sends anything to
+    the shop. Opens v1 (plain JSON) and v2 (LZ-compressed) summaries.
 -->
 <style>
-:root{--ink:#1F2A22;--muted:#6B7C70;--line:#E3E9E3;--bg:#F2F5F1;--g:#1A7A3C;--r:#B42318;--a:#B4520F;--gold:#C9A84C}
+:root{--ink:#1F2A22;--muted:#6B7C70;--line:#E3E9E3;--bg:#F2F5F1;--g:#1A7A3C;--r:#B42318;--a:#B4520F;--gold:#C9A84C;--blue:#1A4A8C}
 *{box-sizing:border-box}
 html,body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans Tamil","Nirmala UI",sans-serif;-webkit-font-smoothing:antialiased}
 .wrap{max-width:560px;margin:0 auto;padding:14px 14px 40px}
-.top{background:linear-gradient(135deg,#0F2A1A,#1A5C34 60%,#2C1F0A);color:#F6E7B8;border-radius:18px;padding:16px 18px;display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.top{background:linear-gradient(135deg,#0F2A1A,#1A5C34 60%,#2C1F0A);color:#F6E7B8;border-radius:18px;padding:14px 16px;display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
 .top .s{font-weight:800;font-size:17px}.top .u{font-size:12.5px;opacity:.85;margin-top:3px}
-.top button{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);color:#F6E7B8;border-radius:10px;padding:7px 10px;font:inherit;font-size:12.5px;font-weight:700;cursor:pointer}
+.tb{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.tb button{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);color:#F6E7B8;border-radius:10px;padding:6px 9px;font:inherit;font-size:12.5px;font-weight:700;cursor:pointer}
+.tabs{position:sticky;top:0;z-index:5;background:var(--bg);display:flex;gap:6px;overflow-x:auto;padding:10px 0 6px;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tabs button{flex:0 0 auto;border:1px solid var(--line);background:#fff;border-radius:999px;padding:7px 12px;font:inherit;font-size:13px;font-weight:700;color:var(--muted);cursor:pointer}
+.tabs button.on{background:#14301F;color:#F6E7B8;border-color:#14301F}
 .card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px;margin-top:12px}
-.h{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin-bottom:8px}
+.h{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin-bottom:8px;display:flex;justify-content:space-between;gap:8px}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .k{background:#F8FBF7;border:1px solid var(--line);border-radius:12px;padding:11px}
 .k .l{font-size:11.5px;color:var(--muted);font-weight:700}.k .v{font-size:20px;font-weight:800;margin-top:2px;font-variant-numeric:tabular-nums}
 .k .n{font-size:12px;color:var(--muted);margin-top:1px}
-.red{color:var(--r)}.green{color:var(--g)}
+.red{color:var(--r)}.green{color:var(--g)}.amber{color:var(--a)}
 .gate{text-align:center}.gate h2{margin:6px 0;font-size:18px}.gate p{color:var(--muted);font-size:13.5px;margin:0 0 12px;line-height:1.45}
 #pass{width:100%;max-width:280px;font:inherit;font-size:18px;padding:12px;border:2px solid #D8E2D8;border-radius:12px;text-align:center;outline:none}#pass:focus{border-color:var(--gold)}
 .btn{border:0;border-radius:12px;padding:12px 18px;font:inherit;font-weight:800;font-size:15px;cursor:pointer;background:linear-gradient(135deg,#1A5C34,#12331F);color:#F6E7B8;margin-top:12px;width:100%;max-width:280px}
 .err{color:var(--r);font-weight:700;font-size:13px;min-height:18px;margin-top:10px}
 .bad{background:#FFF4F2;border:1px solid #F3C7C0;color:var(--r);border-radius:14px;padding:18px;margin-top:14px;font-weight:700;text-align:center}
 .warn{background:#FFF7E6;color:#8A5A00;border-radius:12px;padding:9px 12px;font-size:12.5px;font-weight:700;margin-top:12px}
-.row{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid #F0F3F0;font-size:13.5px}
-.row:last-child{border-bottom:0}.row .m{color:var(--muted);font-size:12px}.row b{font-variant-numeric:tabular-nums;white-space:nowrap}
+.row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid #F0F3F0;font-size:13.5px}
+.row:last-child{border-bottom:0}.m{color:var(--muted);font-size:12px}.row b{font-variant-numeric:tabular-nums;white-space:nowrap}
+.tap{cursor:pointer}.tap:active{background:#F6FAF5}
 .tag{display:inline-block;min-width:22px;text-align:center;border-radius:6px;font-size:11px;font-weight:800;padding:1px 5px;margin-right:6px}
 .tL{background:#EEF3FB;color:#1A4A8C}.tP{background:#E6F6EC;color:#1A5C2C}.tR{background:#FFF7E6;color:#8A5A00}
+.acts{display:flex;gap:6px;flex:0 0 auto}
+.acts a{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:10px;border:1px solid var(--line);text-decoration:none;font-size:17px;background:#F8FBF7}
+.seg{display:flex;gap:6px;margin-bottom:6px;flex-wrap:wrap}
+.seg button{border:1px solid var(--line);background:#fff;border-radius:10px;padding:6px 10px;font:inherit;font-size:12.5px;font-weight:700;color:var(--muted);cursor:pointer}
+.seg button.on{background:#E6F6EC;color:#1A5C2C;border-color:#BFE3CB}
+#q{width:100%;font:inherit;font-size:16px;padding:11px 12px;border:2px solid #D8E2D8;border-radius:12px;outline:none}#q:focus{border-color:var(--gold)}
+table{width:100%;border-collapse:collapse;font-size:13px}th{font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);text-align:left;padding:6px 4px;border-bottom:1px solid var(--line)}td{padding:8px 4px;border-bottom:1px solid #F0F3F0;font-variant-numeric:tabular-nums}td.r,th.r{text-align:right}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:6px 12px;font-size:13.5px}.kv span{color:var(--muted)}.kv b{text-align:right;font-variant-numeric:tabular-nums}
+.pct{display:inline-block;border-radius:999px;padding:2px 8px;font-size:11.5px;font-weight:800}
+.p1{background:#FFF7E6;color:#8A5A00}.p2{background:#FDECEA;color:var(--r)}
+.legend{display:flex;gap:12px;font-size:11.5px;color:var(--muted);margin-top:4px}.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:4px;vertical-align:-1px}
 svg{display:block;width:100%;height:auto}
+.sheet{position:fixed;inset:0;background:rgba(10,14,10,.5);z-index:20;display:flex;align-items:flex-end;justify-content:center}
+.sheet>div{background:#fff;border-radius:18px 18px 0 0;width:100%;max-width:560px;padding:16px;max-height:85vh;overflow:auto}
+.opt{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #F0F3F0;font-size:14px}
 .foot{text-align:center;color:var(--muted);font-size:11.5px;margin-top:16px;line-height:1.5}
+@media print{.tabs,.tb,.foot,.sheet,#gate{display:none!important}body{background:#fff}.card{break-inside:avoid}}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <div class="top"><div><div class="s" id="shop">Shop Owner View</div><div class="u" id="upd">Read-only · encrypted</div></div><div id="acts" style="display:none;gap:6px;flex-direction:column"><button onclick="load(true)">↻ Refresh</button><button onclick="lock()">🔒 Lock</button></div></div>
+  <div class="top"><div><div class="s" id="shop">Shop Owner View</div><div class="u" id="upd"></div></div>
+    <div class="tb" id="acts" style="display:none"><button onclick="load(true)" id="b-ref">↻</button><button onclick="menu()" id="b-menu">⋯</button><button onclick="lock(true)" id="b-lock">🔒</button></div></div>
   <div id="gate" class="card gate">
     <div style="font-size:30px">🔐</div>
-    <h2>Enter your passcode</h2>
-    <p>This page shows your shop's figures. It opens only with the passcode you chose in the shop app.</p>
+    <h2 data-i="gt"></h2>
+    <p data-i="gp"></p>
     <input id="pass" type="password" autocomplete="current-password" onkeydown="if(event.key==='Enter')unlock()">
-    <br><button class="btn" id="go" onclick="unlock()">Open</button>
+    <br><button class="btn" id="go" onclick="unlock()" data-i="open"></button>
     <div class="err" id="err"></div>
+    <div style="margin-top:12px"><button onclick="setLang(LANG==='en'?'ta':'en')" style="border:1px solid var(--line);background:#fff;border-radius:999px;padding:6px 12px;font:inherit;font-weight:700;color:var(--muted)" id="langbtn"></button></div>
   </div>
+  <div class="tabs" id="tabs" style="display:none"></div>
   <div id="view"></div>
-  <div class="foot">Figures sent by the shop computer. Read-only — nothing can be changed from here.</div>
+  <div class="foot" data-i="foot"></div>
 </div>
 <script>
+var LZString=function(){var r=String.fromCharCode,o="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=",n="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+-$",e={};function t(r,o){if(!e[r]){e[r]={};for(var n=0;n<r.length;n++)e[r][r.charAt(n)]=n}return e[r][o]}var i={compressToBase64:function(r){if(null==r)return"";var n=i._compress(r,6,function(r){return o.charAt(r)});switch(n.length%4){default:case 0:return n;case 1:return n+"===";case 2:return n+"==";case 3:return n+"="}},decompressFromBase64:function(r){return null==r?"":""==r?null:i._decompress(r.length,32,function(n){return t(o,r.charAt(n))})},compressToUTF16:function(o){return null==o?"":i._compress(o,15,function(o){return r(o+32)})+" "},decompressFromUTF16:function(r){return null==r?"":""==r?null:i._decompress(r.length,16384,function(o){return r.charCodeAt(o)-32})},compressToUint8Array:function(r){for(var o=i.compress(r),n=new Uint8Array(2*o.length),e=0,t=o.length;e<t;e++){var s=o.charCodeAt(e);n[2*e]=s>>>8,n[2*e+1]=s%256}return n},decompressFromUint8Array:function(o){if(null==o)return i.decompress(o);for(var n=new Array(o.length/2),e=0,t=n.length;e<t;e++)n[e]=256*o[2*e]+o[2*e+1];var s=[];return n.forEach(function(o){s.push(r(o))}),i.decompress(s.join(""))},compressToEncodedURIComponent:function(r){return null==r?"":i._compress(r,6,function(r){return n.charAt(r)})},decompressFromEncodedURIComponent:function(r){return null==r?"":""==r?null:(r=r.replace(/ /g,"+"),i._decompress(r.length,32,function(o){return t(n,r.charAt(o))}))},compress:function(o){return i._compress(o,16,function(o){return r(o)})},_compress:function(r,o,n){if(null==r)return"";var e,t,i,s={},u={},a="",p="",c="",l=2,f=3,h=2,d=[],m=0,v=0;for(i=0;i<r.length;i+=1)if(a=r.charAt(i),Object.prototype.hasOwnProperty.call(s,a)||(s[a]=f++,u[a]=!0),p=c+a,Object.prototype.hasOwnProperty.call(s,p))c=p;else{if(Object.prototype.hasOwnProperty.call(u,c)){if(c.charCodeAt(0)<256){for(e=0;e<h;e++)m<<=1,v==o-1?(v=0,d.push(n(m)),m=0):v++;for(t=c.charCodeAt(0),e=0;e<8;e++)m=m<<1|1&t,v==o-1?(v=0,d.push(n(m)),m=0):v++,t>>=1}else{for(t=1,e=0;e<h;e++)m=m<<1|t,v==o-1?(v=0,d.push(n(m)),m=0):v++,t=0;for(t=c.charCodeAt(0),e=0;e<16;e++)m=m<<1|1&t,v==o-1?(v=0,d.push(n(m)),m=0):v++,t>>=1}0==--l&&(l=Math.pow(2,h),h++),delete u[c]}else for(t=s[c],e=0;e<h;e++)m=m<<1|1&t,v==o-1?(v=0,d.push(n(m)),m=0):v++,t>>=1;0==--l&&(l=Math.pow(2,h),h++),s[p]=f++,c=String(a)}if(""!==c){if(Object.prototype.hasOwnProperty.call(u,c)){if(c.charCodeAt(0)<256){for(e=0;e<h;e++)m<<=1,v==o-1?(v=0,d.push(n(m)),m=0):v++;for(t=c.charCodeAt(0),e=0;e<8;e++)m=m<<1|1&t,v==o-1?(v=0,d.push(n(m)),m=0):v++,t>>=1}else{for(t=1,e=0;e<h;e++)m=m<<1|t,v==o-1?(v=0,d.push(n(m)),m=0):v++,t=0;for(t=c.charCodeAt(0),e=0;e<16;e++)m=m<<1|1&t,v==o-1?(v=0,d.push(n(m)),m=0):v++,t>>=1}0==--l&&(l=Math.pow(2,h),h++),delete u[c]}else for(t=s[c],e=0;e<h;e++)m=m<<1|1&t,v==o-1?(v=0,d.push(n(m)),m=0):v++,t>>=1;0==--l&&(l=Math.pow(2,h),h++)}for(t=2,e=0;e<h;e++)m=m<<1|1&t,v==o-1?(v=0,d.push(n(m)),m=0):v++,t>>=1;for(;;){if(m<<=1,v==o-1){d.push(n(m));break}v++}return d.join("")},decompress:function(r){return null==r?"":""==r?null:i._decompress(r.length,32768,function(o){return r.charCodeAt(o)})},_decompress:function(o,n,e){var t,i,s,u,a,p,c,l=[],f=4,h=4,d=3,m="",v=[],g={val:e(0),position:n,index:1};for(t=0;t<3;t+=1)l[t]=t;for(s=0,a=Math.pow(2,2),p=1;p!=a;)u=g.val&g.position,g.position>>=1,0==g.position&&(g.position=n,g.val=e(g.index++)),s|=(u>0?1:0)*p,p<<=1;switch(s){case 0:for(s=0,a=Math.pow(2,8),p=1;p!=a;)u=g.val&g.position,g.position>>=1,0==g.position&&(g.position=n,g.val=e(g.index++)),s|=(u>0?1:0)*p,p<<=1;c=r(s);break;case 1:for(s=0,a=Math.pow(2,16),p=1;p!=a;)u=g.val&g.position,g.position>>=1,0==g.position&&(g.position=n,g.val=e(g.index++)),s|=(u>0?1:0)*p,p<<=1;c=r(s);break;case 2:return""}for(l[3]=c,i=c,v.push(c);;){if(g.index>o)return"";for(s=0,a=Math.pow(2,d),p=1;p!=a;)u=g.val&g.position,g.position>>=1,0==g.position&&(g.position=n,g.val=e(g.index++)),s|=(u>0?1:0)*p,p<<=1;switch(c=s){case 0:for(s=0,a=Math.pow(2,8),p=1;p!=a;)u=g.val&g.position,g.position>>=1,0==g.position&&(g.position=n,g.val=e(g.index++)),s|=(u>0?1:0)*p,p<<=1;l[h++]=r(s),c=h-1,f--;break;case 1:for(s=0,a=Math.pow(2,16),p=1;p!=a;)u=g.val&g.position,g.position>>=1,0==g.position&&(g.position=n,g.val=e(g.index++)),s|=(u>0?1:0)*p,p<<=1;l[h++]=r(s),c=h-1,f--;break;case 2:return v.join("")}if(0==f&&(f=Math.pow(2,d),d++),l[c])m=l[c];else{if(c!==h)return null;m=i+i.charAt(0)}v.push(m),l[h++]=i+m.charAt(0),i=m,0==--f&&(f=Math.pow(2,d),d++)}}};return i}();"function"==typeof define&&define.amd?define(function(){return LZString}):"undefined"!=typeof module&&null!=module?module.exports=LZString:"undefined"!=typeof angular&&null!=angular&&angular.module("LZString",[]).factory("LZString",function(){return LZString});
 'use strict';
+// ── words (English / Tamil) ────────────────────────────────────────────────
+const W = {
+  gt: ['Enter your passcode', 'உங்கள் கடவுச்சொல்லை உள்ளிடவும்'],
+  gp: ["This page shows your shop's figures. It opens only with the passcode chosen in the shop app.", 'இந்தப் பக்கம் உங்கள் கடையின் கணக்குகளைக் காட்டும். கடை மென்பொருளில் அமைத்த கடவுச்சொல்லுடன் மட்டுமே திறக்கும்.'],
+  open: ['Open', 'திற'], wrong: ['Wrong passcode.', 'தவறான கடவுச்சொல்.'], opening: ['Opening…', 'திறக்கிறது…'],
+  wait: ['Too many wrong tries. Wait {s} seconds.', 'பல தவறான முயற்சிகள். {s} விநாடி காத்திருக்கவும்.'],
+  foot: ['Figures sent by the shop computer. Read-only — nothing can be changed from here.', 'கடை கணினியிலிருந்து அனுப்பப்பட்ட கணக்குகள். இங்கிருந்து எதையும் மாற்ற முடியாது.'],
+  badlink: ['This link is incomplete. Open the link from the shop app again.', 'இந்த இணைப்பு முழுமையாக இல்லை. கடை மென்பொருளிலிருந்து மீண்டும் திறக்கவும்.'],
+  nocrypto: ['Please open this link in Chrome or Safari.', 'இந்த இணைப்பை Chrome அல்லது Safari-யில் திறக்கவும்.'],
+  updated: ['Updated {t} · read-only', 'புதுப்பிப்பு {t} · படிக்க மட்டும்'], refreshing: ['Refreshing…', 'புதுப்பிக்கிறது…'],
+  offline: ['Offline — showing figures from {t}', 'இணையம் இல்லை — {t} கணக்குகள்'],
+  gone: ['This link was switched off in the shop app.', 'இந்த இணைப்பு கடை மென்பொருளில் நிறுத்தப்பட்டது.'],
+  stale: ['No update for {t} — the shop app may be closed.', '{t} புதுப்பிப்பு இல்லை — கடை மென்பொருள் மூடப்பட்டிருக்கலாம்.'],
+  justnow: ['just now', 'இப்போது'], minago: ['{n} min ago', '{n} நிமி. முன்'], hago: ['{n} h ago', '{n} மணி முன்'],
+  tHome: ['Home', 'முகப்பு'], tSearch: ['Search', 'தேடல்'], tFollow: ['Follow-up', 'நினைவூட்டல்'], tGold: ['Gold', 'தங்கம்'], tReports: ['Reports', 'அறிக்கை'], tStaff: ['Staff', 'பணியாளர்'],
+  today: ['Today', 'இன்று'], loansGiven: ['Loans given', 'கொடுத்த கடன்'], received: ['Money received', 'வரவு'], incomeToday: ['Income today', 'இன்றைய வருமானம்'], thisMonth: ['This month', 'இந்த மாதம்'],
+  pledgesN: ['{n} pledges', '{n} அடகு'], paymentsN: ['{n} payments · {r} redeemed', '{n} வரவு · {r} மீட்பு'], intCharges: ['interest + charges', 'வட்டி + கட்டணம்'], vsLast: ['{p}% vs last month', 'கடந்த மாதத்துடன் {p}%'],
+  last7: ['Income — last 7 days', 'வருமானம் — கடந்த 7 நாள்'], loanBook: ['Loan book', 'கடன் கணக்கு'], active: ['Active pledges', 'நடப்பு அடகு'], gGold: ['{n} g gold', '{n} கி தங்கம்'],
+  outstanding: ['Outstanding', 'நிலுவை'], principal: ['principal', 'அசல்'], od90: ['Overdue 90+ days', '90+ நாள் தாமதம்'], due7: ['Due in 7 days', '7 நாளில் கெடு'],
+  counter: ['Today at the counter', 'இன்று கவுண்டரில்'], nothing: ['Nothing yet today.', 'இன்று இன்னும் எதுவும் இல்லை.'],
+  closing: ['Day closing reports', 'நாள் முடிவு அறிக்கை'], longest: ['Longest overdue', 'அதிக நாள் தாமதம்'], days: ['{n} days', '{n} நாள்'],
+  big: ['Big transactions today', 'இன்றைய பெரிய பரிவர்த்தனைகள்'], bigFrom: ['from {a}', '{a} முதல்'], none: ['None.', 'இல்லை.'],
+  L: ['Loan', 'கடன்'], P: ['Paid', 'வரவு'], R: ['Redeem', 'மீட்பு'],
+  searchPh: ['Bill number or customer name', 'பில் எண் அல்லது வாடிக்கையாளர் பெயர்'], searchPhB: ['Bill number', 'பில் எண்'], noMatch: ['No matching active pledge.', 'பொருந்தும் நடப்பு அடகு இல்லை.'],
+  typeToSearch: ['Type a bill number or a name.', 'பில் எண் அல்லது பெயரை உள்ளிடவும்.'], more: ['{n} more — type more to narrow', 'மேலும் {n} — மேலும் தட்டச்சு செய்யவும்'],
+  bill: ['Bill', 'பில்'], date: ['Date', 'தேதி'], loan: ['Loan amount', 'கடன் தொகை'], outPrin: ['Outstanding principal', 'நிலுவை அசல்'], intDue: ['Interest due today', 'இன்றைய வட்டி'],
+  redeemToday: ['To redeem today', 'இன்று மீட்க'], weight: ['Weight', 'எடை'], purity: ['Purity', 'தரம்'], item: ['Jewellery', 'நகை'], daysSince: ['Days since last payment', 'கடைசி வரவுக்குப் பின் நாள்'],
+  nextDue: ['Next due', 'அடுத்த கெடு'], lastPay: ['Last payment', 'கடைசி வரவு'], back: ['← Back', '← திரும்ப'], custView: ['All pledges of this customer', 'இந்த வாடிக்கையாளரின் அனைத்து அடகு'],
+  custTotals: ['{n} active · outstanding {o} · to redeem {t}', '{n} நடப்பு · நிலுவை {o} · மீட்க {t}'],
+  dueToday: ['Due today', 'இன்று கெடு'], dueWeek: ['This week', 'இந்த வாரம்'], overdue: ['Overdue 90+', '90+ தாமதம்'],
+  remind: ['Dear {n}, this is a reminder from {s}: interest is due on your pledge {b}. Amount to pay now: {a}. Please visit at your convenience. Thank you.', 'அன்புள்ள {n}, {s} நினைவூட்டல்: உங்கள் அடகு {b}-க்கு வட்டி செலுத்த வேண்டும். இப்போது செலுத்த வேண்டிய தொகை: {a}. வசதியான நேரத்தில் வரவும். நன்றி.'],
+  goldStock: ['Gold stock', 'தங்க இருப்பு'], rateUsed: ['Rate {r}/g (24K) · {src}', 'விலை {r}/கி (24K) · {src}'], srcShop: ['shop rate', 'கடை விலை'], srcLive: ['live rate', 'நேரடி விலை'],
+  noRate: ['No gold rate set — enter today\'s rate per gram in Gold Valuation in the shop app.', 'தங்க விலை அமைக்கப்படவில்லை — கடை மென்பொருளில் Gold Valuation-ல் இன்றைய விலையை உள்ளிடவும்.'],
+  pur: ['Purity', 'தரம்'], wt: ['Weight', 'எடை'], value: ['Value', 'மதிப்பு'], total: ['Total', 'மொத்தம்'],
+  risky: ['Risky loans', 'அபாயக் கடன்'], riskyHint: ['Owed (principal + interest) is {p}% or more of the gold value', 'நிலுவை (அசல் + வட்டி) தங்க மதிப்பின் {p}% அல்லது அதற்கு மேல்'], owed: ['Owed', 'நிலுவை'], gv: ['Gold value', 'தங்க மதிப்பு'],
+  coll: ['Expected collections', 'எதிர்பார்க்கும் வசூல்'], collWk: ['Interest due this week', 'இந்த வார வட்டி'], collMo: ['Interest due this month', 'இந்த மாத வட்டி'], collGot: ['Interest received this month', 'இந்த மாதம் வந்த வட்டி'], accrued: ['Interest earned, not yet collected', 'ஈட்டிய, வசூலாகாத வட்டி'], approx: ['approximate', 'தோராயம்'],
+  trend: ['Last 12 months', 'கடந்த 12 மாதம்'], incomeM: ['Income', 'வருமானம்'], loansM: ['Loans given', 'கொடுத்த கடன்'], redeemM: ['Redeemed', 'மீட்கப்பட்டது'],
+  activity: ['Staff activity today', 'இன்றைய பணியாளர் செயல்பாடு'], perf: ['Staff performance today', 'இன்றைய பணியாளர் செயல்திறன்'], staff: ['Staff', 'பணியாளர்'], loansC: ['Loans', 'கடன்'], collC: ['Collected', 'வசூல்'],
+  nostaff: ['Recorded from version 3.13 onwards.', 'பதிப்பு 3.13 முதல் பதிவு செய்யப்படும்.'],
+  menuT: ['Options', 'அமைப்புகள்'], lang: ['தமிழ்', 'English'], share: ['Share today\'s summary', 'இன்றைய சுருக்கத்தைப் பகிர்'], pdf: ['Save as PDF / print', 'PDF ஆக சேமி / அச்சிடு'],
+  stay: ['Stay unlocked', 'திறந்தே இருக்க'], s0: ['Lock when I leave this page', 'பக்கத்தை விட்டு வெளியேறும்போது பூட்டு'], s5: ['After 5 minutes away (default)', '5 நிமிடம் கழித்து (இயல்பு)'], s60: ['For 1 hour', '1 மணி நேரம்'], s240: ['For 4 hours', '4 மணி நேரம்'],
+  close: ['Close', 'மூடு'], level: ['This phone sees: {l}', 'இந்த தொலைபேசி பார்ப்பது: {l}'], lvlnonames: ['no customer names', 'வாடிக்கையாளர் பெயர் இல்லாமல்'], lvlfigures: ['totals only', 'மொத்தம் மட்டும்'],
+  summaryTitle: ['{s} — {d}', '{s} — {d}']
+};
+let LANG = 'en'; try { LANG = localStorage.getItem('ov_lang') || 'en'; } catch (e) {}
+function T(k, v) { const w = W[k]; let s = w ? (LANG === 'ta' ? w[1] : w[0]) : k; if (v) for (const x in v) s = s.split('{' + x + '}').join(v[x]); return s; }
+function setLang(l) { LANG = l; try { localStorage.setItem('ov_lang', l); } catch (e) {} document.documentElement.lang = l; document.querySelectorAll('[data-i]').forEach(e => { e.textContent = T(e.dataset.i); }); const lb = document.getElementById('langbtn'); if (lb) lb.textContent = T('lang'); if (DATA) draw(); }
+
+// ── helpers ────────────────────────────────────────────────────────────────
 function b64uDec(s) { s = String(s).replace(/-/g, '+').replace(/_/g, '/'); while (s.length % 4) s += '='; const b = atob(s), o = new Uint8Array(b.length); for (let i = 0; i < b.length; i++) o[i] = b.charCodeAt(i); return o; }
+function b64uEnc(u) { let s = ''; for (let i = 0; i < u.length; i++) s += String.fromCharCode(u[i]); return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); }
 function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
 const inr = (n) => '₹' + Math.round(+n || 0).toLocaleString('en-IN');
-const short = (n) => { n = +n || 0; if (n >= 1e7) return '₹' + (n / 1e7).toFixed(2) + ' Cr'; if (n >= 1e5) return '₹' + (n / 1e5).toFixed(2) + ' L'; return inr(n); };
-let L = null, SEC = null, TIMER = 0;
+const short = (n) => { n = +n || 0; if (Math.abs(n) >= 1e7) return '₹' + (n / 1e7).toFixed(2) + ' Cr'; if (Math.abs(n) >= 1e5) return '₹' + (n / 1e5).toFixed(2) + ' L'; return inr(n); };
+const dmy = (s) => s ? String(s).split('-').reverse().join('/') : '—';
+function ago(ts) { const m = Math.round((Date.now() - ts) / 60000); if (m < 1) return T('justnow'); if (m < 60) return T('minago', { n: m }); const h = Math.round(m / 60); if (h < 24) return T('hago', { n: h }); return new Date(ts).toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }); }
+function tel(m) { return m && m.length === 10 ? 'tel:+91' + m : ''; }
+function wa(m, text) { return m && m.length === 10 ? 'https://wa.me/91' + m + '?text=' + encodeURIComponent(text) : ''; }
+function callBtns(mob, text) { if (!mob) return ''; return '<span class="acts"><a href="' + tel(mob) + '" aria-label="Call">📞</a><a href="' + wa(mob, text) + '" target="_blank" rel="noopener" aria-label="WhatsApp">💬</a></span>'; }
+
+let L = null, SEC = null, TIMER = 0, DATA = null, TAB = 'home', SUB = { follow: 'today' }, Q = '', DETAIL = null;
 
 (function boot() {
   try {
@@ -73,25 +155,52 @@ let L = null, SEC = null, TIMER = 0;
     if (f.indexOf('O1.') !== 0) throw 0;
     const p = f.split('.'); if (p.length !== 5) throw 0;
     const hdrB = b64uDec(p[1]);
-    L = { hdr: JSON.parse(new TextDecoder().decode(hdrB)), hdrB, salt: b64uDec(p[2]), iv: b64uDec(p[3]), ct: b64uDec(p[4]) };
-    if (L.hdr.sn) document.getElementById('shop').textContent = L.hdr.sn;
+    L = { hdr: JSON.parse(new TextDecoder().decode(hdrB)), hdrB, salt: b64uDec(p[2]), iv: b64uDec(p[3]), ct: b64uDec(p[4]), tag: p[4].slice(0, 16) };
+    if (L.hdr.sn) document.getElementById('shop').textContent = L.hdr.sn + (L.hdr.lb ? ' · ' + L.hdr.lb : '');
     if (!(window.crypto && crypto.subtle)) throw 'crypto';
-    setTimeout(() => document.getElementById('pass').focus(), 300);
+    setLang(LANG);
+    resume().then(ok => { if (!ok) setTimeout(() => document.getElementById('pass').focus(), 300); });
   } catch (e) {
-    document.getElementById('gate').outerHTML = '<div class="bad">' + (e === 'crypto' ? 'Please open this link in Chrome or Safari.' : 'This link is incomplete. Open the link from the shop app again.') + '</div>';
+    setLang(LANG);
+    document.getElementById('gate').outerHTML = '<div class="bad">' + T(e === 'crypto' ? 'nocrypto' : 'badlink') + '</div>';
   }
 })();
 
+// ── unlock / stay unlocked (key kept in this browser, not exportable) ──────
 function lockState() { try { return JSON.parse(localStorage.getItem('ov_lock') || '{"n":0,"u":0,"lv":0}'); } catch (e) { return { n: 0, u: 0, lv: 0 }; } }
 function setLock(s) { try { localStorage.setItem('ov_lock', JSON.stringify(s)); } catch (e) {} }
+function stayMins() { try { return +(localStorage.getItem('ov_stay') || 5); } catch (e) { return 5; } }
+function idb() { return new Promise((res, rej) => { const r = indexedDB.open('ov', 1); r.onupgradeneeded = () => r.result.createObjectStore('k'); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); }); }
+async function idbSet(k, v) { const db = await idb(); return new Promise(res => { const t = db.transaction('k', 'readwrite'); t.objectStore('k').put(v, k); t.oncomplete = () => res(true); t.onerror = () => res(false); }); }
+async function idbGet(k) { const db = await idb(); return new Promise(res => { const t = db.transaction('k', 'readonly'); const g = t.objectStore('k').get(k); g.onsuccess = () => res(g.result); g.onerror = () => res(null); }); }
+async function idbDel(k) { try { const db = await idb(); await new Promise(res => { const t = db.transaction('k', 'readwrite'); t.objectStore('k').delete(k); t.oncomplete = res; t.onerror = res; t.onabort = res; }); } catch (e) {} }
+async function remember() {
+  const mins = stayMins();
+  if (mins < 60) { await idbDel('s:' + L.tag); return; }
+  try {
+    const wk = await crypto.subtle.generateKey({ name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']);
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const ct = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, wk, new TextEncoder().encode(JSON.stringify(SEC)));
+    await idbSet('s:' + L.tag, { wk, iv, ct, until: Date.now() + mins * 60000 });
+  } catch (e) {}
+}
+async function resume() {
+  try {
+    const s = await idbGet('s:' + L.tag);
+    if (!s || !s.until || Date.now() > s.until) { if (s) await idbDel('s:' + L.tag); return false; }
+    const pt = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: s.iv }, s.wk, s.ct);
+    SEC = JSON.parse(new TextDecoder().decode(pt));
+    opened(); return true;
+  } catch (e) { return false; }
+}
 let busy = false;
 async function unlock() {
   if (busy || !L) return;
   const err = document.getElementById('err'), inp = document.getElementById('pass');
   const st = lockState();
-  if (Date.now() < st.u) { err.textContent = 'Too many wrong tries. Wait ' + Math.ceil((st.u - Date.now()) / 1000) + ' seconds.'; return; }
+  if (Date.now() < st.u) { err.textContent = T('wait', { s: Math.ceil((st.u - Date.now()) / 1000) }); return; }
   const pass = inp.value; if (!pass) return;
-  busy = true; document.getElementById('go').disabled = true; err.textContent = 'Opening…';
+  busy = true; document.getElementById('go').disabled = true; err.textContent = T('opening');
   try {
     const te = new TextEncoder();
     const base = await crypto.subtle.importKey('raw', te.encode(pass), 'PBKDF2', false, ['deriveKey']);
@@ -102,40 +211,87 @@ async function unlock() {
   busy = false; document.getElementById('go').disabled = false;
   if (!SEC || !SEC.u || !SEC.id || !SEC.k) {
     st.n = (st.n || 0) + 1;
-    if (st.n >= 5) { const w = [30, 120, 300, 900][Math.min(st.lv || 0, 3)]; st.u = Date.now() + w * 1000; st.n = 0; st.lv = (st.lv || 0) + 1; err.textContent = 'Too many wrong tries. Wait ' + w + ' seconds.'; }
-    else err.textContent = 'Wrong passcode.';
+    if (st.n >= 5) { const w = [30, 120, 300, 900][Math.min(st.lv || 0, 3)]; st.u = Date.now() + w * 1000; st.n = 0; st.lv = (st.lv || 0) + 1; err.textContent = T('wait', { s: w }); }
+    else err.textContent = T('wrong');
     setLock(st); inp.value = ''; inp.focus(); return;
   }
   setLock({ n: 0, u: 0, lv: 0 });
-  inp.value = '';
+  inp.value = ''; err.textContent = '';
+  await remember();
+  opened();
+}
+function opened() {
   document.getElementById('gate').style.display = 'none';
   document.getElementById('acts').style.display = 'flex';
+  document.getElementById('tabs').style.display = 'flex';
   load(false);
   clearInterval(TIMER); TIMER = setInterval(() => { if (!document.hidden) load(false); }, 60000);
 }
-function lock() { SEC = null; clearInterval(TIMER); document.getElementById('view').innerHTML = ''; document.getElementById('acts').style.display = 'none'; document.getElementById('gate').style.display = ''; document.getElementById('err').textContent = ''; document.getElementById('upd').textContent = 'Read-only · encrypted'; }
-document.addEventListener('visibilitychange', () => { if (document.hidden) { clearTimeout(window.__idle); window.__idle = setTimeout(lock, 5 * 60000); } else clearTimeout(window.__idle); });
+async function lock(forget) {
+  SEC = null; DATA = null; clearInterval(TIMER);
+  if (forget) await idbDel('s:' + L.tag);
+  document.getElementById('view').innerHTML = ''; document.getElementById('acts').style.display = 'none'; document.getElementById('tabs').style.display = 'none';
+  document.getElementById('gate').style.display = ''; document.getElementById('err').textContent = ''; document.getElementById('upd').textContent = '';
+}
+document.addEventListener('visibilitychange', () => {
+  if (!SEC) return;
+  const m = stayMins();
+  if (document.hidden) {
+    clearTimeout(window.__idle);
+    if (m === 0) lock(true); else if (m < 60) window.__idle = setTimeout(() => lock(true), m * 60000);
+  } else { clearTimeout(window.__idle); load(false); }
+});
 
+// ── fetch + decrypt (and keep the encrypted copy for offline use) ──────────
+async function decryptBlob(text) {
+  const raw = b64uDec(String(text).trim());
+  const k = await crypto.subtle.importKey('raw', b64uDec(SEC.k), 'AES-GCM', false, ['decrypt']);
+  let s = new TextDecoder().decode(await crypto.subtle.decrypt({ name: 'AES-GCM', iv: raw.slice(0, 12) }, k, raw.slice(12)));
+  if (s.indexOf('LZ1:') === 0) s = LZString.decompressFromBase64(s.slice(4));
+  return JSON.parse(s);
+}
 async function load(manual) {
   if (!SEC) return;
   const upd = document.getElementById('upd');
-  if (manual) upd.textContent = 'Refreshing…';
+  if (manual) upd.textContent = T('refreshing');
+  const ck = 'ov_c_' + SEC.id;
   try {
     const r = await fetch(SEC.u.replace(/\/+$/, '') + '/p/' + encodeURIComponent(SEC.id) + '?t=' + Date.now(), { cache: 'no-store', referrerPolicy: 'no-referrer' });
-    if (r.status === 404) throw new Error('gone');
+    if (r.status === 404) { try { localStorage.removeItem(ck); } catch (e) {} throw new Error('gone'); }
     if (!r.ok) throw new Error('HTTP ' + r.status);
-    const raw = b64uDec((await r.text()).trim());
-    const k = await crypto.subtle.importKey('raw', b64uDec(SEC.k), 'AES-GCM', false, ['decrypt']);
-    const D = JSON.parse(new TextDecoder().decode(await crypto.subtle.decrypt({ name: 'AES-GCM', iv: raw.slice(0, 12) }, k, raw.slice(12))));
-    render(D);
+    const text = await r.text();
+    DATA = await decryptBlob(text); DATA.__off = false;
+    try { localStorage.setItem(ck, text); } catch (e) {}
+    draw();
   } catch (e) {
-    upd.textContent = e.message === 'gone' ? 'This link was turned off in the shop app.' : 'Could not refresh — check the internet. Showing the last figures.';
+    if (e.message === 'gone') { DATA = null; document.getElementById('view').innerHTML = '<div class="bad">' + T('gone') + '</div>'; upd.textContent = ''; return; }
+    try { const c = localStorage.getItem(ck); if (c && (!DATA || manual)) { DATA = await decryptBlob(c); DATA.__off = true; draw(); return; } } catch (x) {}
+    if (DATA) { DATA.__off = true; draw(); }
   }
 }
-function ago(ts) { const m = Math.round((Date.now() - ts) / 60000); if (m < 1) return 'just now'; if (m < 60) return m + ' min ago'; const h = Math.round(m / 60); if (h < 24) return h + ' hour' + (h > 1 ? 's' : '') + ' ago'; return new Date(ts).toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }); }
+
+// ── tabs ───────────────────────────────────────────────────────────────────
+function tabsFor(D) { const fig = D.lvl === 'figures'; const t = ['home']; if (!fig && D.pl) t.push('search', 'follow'); t.push('gold', 'reports'); if (!fig && D.act) t.push('staff'); return t; }
+function go(t) { TAB = t; DETAIL = null; draw(); window.scrollTo(0, 0); }
+function draw() {
+  const D = DATA; if (!D) return;
+  document.getElementById('shop').textContent = (D.sn || L.hdr.sn || 'Shop') + (L.hdr.lb ? ' · ' + L.hdr.lb : '');
+  document.getElementById('upd').textContent = D.__off ? T('offline', { t: ago(D.ts) }) : T('updated', { t: ago(D.ts) });
+  const TT = tabsFor(D); if (TT.indexOf(TAB) < 0) TAB = 'home';
+  const names = { home: 'tHome', search: 'tSearch', follow: 'tFollow', gold: 'tGold', reports: 'tReports', staff: 'tStaff' };
+  document.getElementById('tabs').innerHTML = TT.map(t => '<button class="' + (t === TAB ? 'on' : '') + '" onclick="go(\'' + t + '\')">' + T(names[t]) + '</button>').join('');
+  let h = '';
+  if (!D.__off && Date.now() - D.ts > 45 * 60000) h += '<div class="warn">⏸ ' + T('stale', { t: ago(D.ts).replace(/ ago| முன்/, '') }) + '</div>';
+  if (D.lvl && D.lvl !== 'full') h += '<div class="warn" style="background:#EEF3F8;color:#3A5A7A">' + T('level', { l: T('lvl' + D.lvl) }) + '</div>';
+  h += ({ home: vHome, search: vSearch, follow: vFollow, gold: vGold, reports: vReports, staff: vStaff })[TAB](D);
+  document.getElementById('view').innerHTML = h;
+  if (TAB === 'search') { const q = document.getElementById('q'); if (q && !DETAIL) { q.value = Q; q.focus(); q.setSelectionRange(Q.length, Q.length); } }
+}
+
+// ── Home ───────────────────────────────────────────────────────────────────
 function bars(s7) {
-  const max = Math.max(1, ...s7.map(x => x[1])), W = 320, H = 110, bw = W / s7.length;
-  return '<svg viewBox="0 0 ' + W + ' ' + (H + 22) + '" role="img" aria-label="Income, last 7 days">' + s7.map((x, i) => {
+  const max = Math.max(1, ...s7.map(x => x[1])), Wd = 320, H = 110, bw = Wd / s7.length;
+  return '<svg viewBox="0 0 ' + Wd + ' ' + (H + 22) + '" role="img">' + s7.map((x, i) => {
     const h = Math.round(x[1] / max * (H - 16)), X = i * bw + 6, w = bw - 12;
     const lbl = x[1] ? (x[1] >= 1000 ? (x[1] / 1000).toFixed(x[1] >= 10000 ? 0 : 1) + 'k' : String(x[1])) : '';
     return '<rect x="' + X + '" y="' + (H - h) + '" width="' + w + '" height="' + Math.max(h, 1) + '" rx="4" fill="' + (i === s7.length - 1 ? '#C9A84C' : '#2E8B57') + '"/>'
@@ -143,34 +299,188 @@ function bars(s7) {
       + '<text x="' + (X + w / 2) + '" y="' + (H + 14) + '" font-size="10" text-anchor="middle" fill="#6B7C70">' + esc(x[0].split('-').reverse().join('/')) + '</text>';
   }).join('') + '</svg>';
 }
-function render(D) {
-  const T = D.today || {}, M = D.month || {}, F = D.pf || {};
-  document.getElementById('shop').textContent = D.sn || (L.hdr.sn || 'Shop');
-  document.getElementById('upd').textContent = 'Updated ' + ago(D.ts) + ' · read-only';
-  const stale = Date.now() - D.ts > 45 * 60000;
+function txRow(r) { return '<div class="row"><div><span class="tag t' + r[0] + '">' + T(r[0]) + '</span>' + esc(r[1]) + (r[2] ? ' · ' + esc(r[2]) : '') + '<div class="m">' + esc(r[4] || '') + (r[5] ? ' · ' + esc(r[5]) : '') + '</div></div><b>' + inr(r[3]) + '</b></div>'; }
+function vHome(D) {
+  const Td = D.today || {}, M = D.month || {}, F = D.pf || {};
   const mPct = M.prev ? Math.round((M.inc - M.prev) / M.prev * 100) : null;
-  let h = '';
-  if (stale) h += '<div class="warn">⏸ No update for ' + ago(D.ts).replace(' ago', '') + ' — the shop app may be closed.</div>';
-  h += '<div class="card"><div class="h">Today</div><div class="grid">'
-    + '<div class="k"><div class="l">Loans given</div><div class="v">' + short(T.aL) + '</div><div class="n">' + (T.nL || 0) + ' pledge' + (T.nL === 1 ? '' : 's') + '</div></div>'
-    + '<div class="k"><div class="l">Money received</div><div class="v green">' + short(T.aP) + '</div><div class="n">' + (T.nP || 0) + ' payment' + (T.nP === 1 ? '' : 's') + ' · ' + (T.nR || 0) + ' redeemed</div></div>'
-    + '<div class="k"><div class="l">Income today</div><div class="v">' + inr(T.inc) + '</div><div class="n">interest + charges</div></div>'
-    + '<div class="k"><div class="l">This month</div><div class="v">' + short(M.inc) + '</div><div class="n">' + (mPct == null ? (M.nL || 0) + ' new pledges' : (mPct >= 0 ? '▲ ' : '▼ ') + Math.abs(mPct) + '% vs last month') + '</div></div>'
+  let h = '<div class="card"><div class="h">' + T('today') + '</div><div class="grid">'
+    + '<div class="k"><div class="l">' + T('loansGiven') + '</div><div class="v">' + short(Td.aL) + '</div><div class="n">' + T('pledgesN', { n: Td.nL || 0 }) + '</div></div>'
+    + '<div class="k"><div class="l">' + T('received') + '</div><div class="v green">' + short(Td.aP) + '</div><div class="n">' + T('paymentsN', { n: Td.nP || 0, r: Td.nR || 0 }) + '</div></div>'
+    + '<div class="k"><div class="l">' + T('incomeToday') + '</div><div class="v">' + inr(Td.inc) + '</div><div class="n">' + T('intCharges') + '</div></div>'
+    + '<div class="k"><div class="l">' + T('thisMonth') + '</div><div class="v">' + short(M.inc) + '</div><div class="n">' + (mPct == null ? T('pledgesN', { n: M.nL || 0 }) : (mPct >= 0 ? '▲ ' : '▼ ') + T('vsLast', { p: Math.abs(mPct) })) + '</div></div>'
     + '</div></div>';
-  h += '<div class="card"><div class="h">Income — last 7 days</div>' + bars(D.s7 || []) + '</div>';
-  h += '<div class="card"><div class="h">Loan book</div><div class="grid">'
-    + '<div class="k"><div class="l">Active pledges</div><div class="v">' + (F.n || 0).toLocaleString('en-IN') + '</div><div class="n">' + (F.gold || 0).toLocaleString('en-IN') + ' g gold</div></div>'
-    + '<div class="k"><div class="l">Outstanding</div><div class="v">' + short(F.prin) + '</div><div class="n">principal</div></div>'
-    + '<div class="k"><div class="l">Overdue 90+ days</div><div class="v' + (F.od ? ' red' : '') + '">' + (F.od || 0) + '</div><div class="n">' + short(F.odPrin) + '</div></div>'
-    + '<div class="k"><div class="l">Due in 7 days</div><div class="v">' + (F.due7 || 0) + '</div><div class="n">pledges</div></div>'
+  if (D.big && D.big.list && D.big.list.length) h += '<div class="card"><div class="h"><span>⚡ ' + T('big') + '</span><span>' + T('bigFrom', { a: short(D.big.th) }) + '</span></div>' + D.big.list.map(txRow).join('') + '</div>';
+  h += '<div class="card"><div class="h">' + T('last7') + '</div>' + bars(D.s7 || []) + '</div>';
+  h += '<div class="card"><div class="h">' + T('loanBook') + '</div><div class="grid">'
+    + '<div class="k"><div class="l">' + T('active') + '</div><div class="v">' + (F.n || 0).toLocaleString('en-IN') + '</div><div class="n">' + T('gGold', { n: (F.gold || 0).toLocaleString('en-IN') }) + '</div></div>'
+    + '<div class="k"><div class="l">' + T('outstanding') + '</div><div class="v">' + short(F.prin) + '</div><div class="n">' + T('principal') + '</div></div>'
+    + '<div class="k tap" onclick="SUB.follow=\'od\';go(\'follow\')"><div class="l">' + T('od90') + '</div><div class="v' + (F.od ? ' red' : '') + '">' + (F.od || 0) + '</div><div class="n">' + short(F.odPrin) + '</div></div>'
+    + '<div class="k tap" onclick="SUB.follow=\'week\';go(\'follow\')"><div class="l">' + T('due7') + '</div><div class="v">' + (F.due7 || 0) + '</div><div class="n">&nbsp;</div></div>'
     + '</div></div>';
+  if (D.coll) h += collCard(D);
   const R = D.recent || [];
-  h += '<div class="card"><div class="h">Today at the counter</div>' + (R.length ? R.map(r => '<div class="row"><div><span class="tag t' + r[0] + '">' + ({ L: 'Loan', P: 'Paid', R: 'Redeem' }[r[0]] || r[0]) + '</span>' + esc(r[1]) + (r[2] ? ' · ' + esc(r[2]) : '') + (r[4] ? '<div class="m">' + esc(r[4]) + '</div>' : '') + '</div><b>' + inr(r[3]) + '</b></div>').join('') : '<div class="m" style="color:var(--muted);font-size:13px">Nothing yet today.</div>') + '</div>';
+  if (D.lvl !== 'figures') h += '<div class="card"><div class="h">' + T('counter') + '</div>' + (R.length ? R.map(txRow).join('') : '<div class="m">' + T('nothing') + '</div>') + '</div>';
   const DY = D.days || [];
-  if (DY.length) h += '<div class="card"><div class="h">Day closing reports</div>' + DY.map(x => { const f = x[1] || {}; return '<div class="row"><div>' + esc(x[0].split('-').reverse().join('/')) + '<div class="m">' + (f.nL || 0) + ' loans · ' + inr(f.aL) + ' given · ' + inr(f.aP) + ' received · ' + (f.nR || 0) + ' redeemed' + (f.close != null ? ' · closing ' + inr(f.close) : '') + '</div></div><b>' + inr(f.inc) + '</b></div>'; }).join('') + '</div>';
+  if (DY.length) h += '<div class="card"><div class="h">' + T('closing') + '</div>' + DY.map(x => { const f = x[1] || {}; return '<div class="row"><div>' + dmy(x[0]) + '<div class="m">' + (f.nL || 0) + ' ' + T('L') + ' · ' + inr(f.aL) + ' · ' + T('P') + ' ' + inr(f.aP) + ' · ' + (f.nR || 0) + ' ' + T('R') + (f.close != null ? ' · ' + inr(f.close) : '') + '</div></div><b>' + inr(f.inc) + '</b></div>'; }).join('') + '</div>';
   const O = D.odTop || [];
-  if (O.length) h += '<div class="card"><div class="h">Longest overdue</div>' + O.map(o => '<div class="row"><div>' + esc(o[0]) + (o[1] ? ' · ' + esc(o[1]) : '') + '<div class="m">' + o[2] + ' days</div></div><b>' + inr(o[3]) + '</b></div>').join('') + '</div>';
-  document.getElementById('view').innerHTML = h;
+  if (O.length) h += '<div class="card"><div class="h">' + T('longest') + '</div>' + O.map(o => '<div class="row tap" onclick="openBill(\'' + encodeURIComponent(o[0]) + '\')"><div>' + esc(o[0]) + (o[1] ? ' · ' + esc(o[1]) : '') + '<div class="m">' + T('days', { n: o[2] }) + '</div></div><b>' + inr(o[3]) + '</b></div>').join('') + '</div>';
+  return h;
+}
+
+// ── Search · pledge detail · customer view ─────────────────────────────────
+// pl row: 0 bill,1 name,2 mobile,3 date,4 amount,5 outstanding,6 interest due,7 to redeem,8 weight,9 purity,10 item,11 days,12 next due,13 customer id,14 last payment
+function plRow(p) { return '<div class="row tap" onclick="openBill(\'' + encodeURIComponent(p[0]) + '\')"><div><b style="font-weight:800">' + esc(p[0]) + '</b>' + (p[1] ? ' · ' + esc(p[1]) : '') + '<div class="m">' + dmy(p[3]) + ' · ' + p[8] + ' g · ' + T('days', { n: p[11] }) + '</div></div><b>' + inr(p[7]) + '</b></div>'; }
+function vSearch(D) {
+  if (DETAIL) return DETAIL.cust ? vCust(D, DETAIL) : vBill(D, DETAIL.bill);
+  let h = '<div class="card"><input id="q" placeholder="' + esc(T(D.lvl === 'nonames' ? 'searchPhB' : 'searchPh')) + '" oninput="Q=this.value;results()" autocomplete="off" inputmode="search"><div id="res" style="margin-top:8px">' + resultsHtml(D) + '</div></div>';
+  return h;
+}
+function results() { const r = document.getElementById('res'); if (r) r.innerHTML = resultsHtml(DATA); }
+function resultsHtml(D) {
+  const q = Q.trim().toLowerCase(); if (!q) return '<div class="m">' + T('typeToSearch') + '</div>';
+  const P = D.pl || [], qd = q.replace(/\D/g, '').replace(/^0+/, '');
+  let hit;
+  if (/^\d+$/.test(q.replace(/[\s\-\/]/g, '')) && qd) {
+    const exact = P.filter(p => String(p[0]).replace(/\D/g, '').replace(/^0+/, '') === qd);
+    hit = exact.length ? exact : P.filter(p => String(p[0]).replace(/\D/g, '').replace(/^0+/, '').indexOf(qd) === 0);
+  } else hit = P.filter(p => String(p[1]).toLowerCase().indexOf(q) >= 0 || String(p[0]).toLowerCase() === q);
+  if (!hit.length) return '<div class="m">' + T('noMatch') + '</div>';
+  return hit.slice(0, 40).map(plRow).join('') + (hit.length > 40 ? '<div class="m" style="margin-top:6px">' + T('more', { n: hit.length - 40 }) + '</div>' : '');
+}
+function openBill(b) { b = decodeURIComponent(b); TAB = 'search'; DETAIL = { bill: b }; draw(); window.scrollTo(0, 0); }
+function openCustB(b) { const p = (DATA.pl || []).find(x => String(x[0]) === decodeURIComponent(b)); if (p) openCust(p[13], p[1], p[2]); }
+function openCust(cid, name, mob) { DETAIL = { cust: true, cid, name, mob }; draw(); window.scrollTo(0, 0); }
+function remindText(p) { return T('remind', { n: p[1] || '', s: DATA.sn || '', b: p[0], a: inr(p[6] > 0 ? p[6] : p[7]) }); }
+function vBill(D, b) {
+  const p = (D.pl || []).find(x => String(x[0]) === String(b));
+  let h = '<div style="margin-top:12px"><button class="seg-b" onclick="DETAIL=null;draw()" style="border:0;background:none;font:inherit;font-weight:800;color:var(--blue);padding:0">' + T('back') + '</button></div>';
+  if (!p) return h + '<div class="card"><div class="m">' + T('noMatch') + '</div></div>';
+  h += '<div class="card"><div class="h"><span>' + T('bill') + ' ' + esc(p[0]) + '</span>' + callBtns(p[2], remindText(p)) + '</div>'
+    + (p[1] ? '<div style="font-size:18px;font-weight:800;margin-bottom:8px">' + esc(p[1]) + '</div>' : '')
+    + '<div class="kv"><span>' + T('date') + '</span><b>' + dmy(p[3]) + '</b><span>' + T('loan') + '</span><b>' + inr(p[4]) + '</b>'
+    + '<span>' + T('outPrin') + '</span><b>' + inr(p[5]) + '</b><span>' + T('intDue') + '</span><b class="amber">' + inr(p[6]) + '</b>'
+    + '<span>' + T('redeemToday') + '</span><b style="font-size:17px">' + inr(p[7]) + '</b>'
+    + '<span>' + T('weight') + '</span><b>' + p[8] + ' g</b><span>' + T('purity') + '</span><b>' + esc(p[9] || '—') + '</b>'
+    + '<span>' + T('item') + '</span><b style="font-weight:600">' + esc(p[10] || '—') + '</b>'
+    + '<span>' + T('daysSince') + '</span><b>' + p[11] + '</b><span>' + T('nextDue') + '</span><b>' + dmy(p[12]) + '</b><span>' + T('lastPay') + '</span><b>' + dmy(p[14]) + '</b></div>'
+    + ((p[13] || p[1]) ? '<button class="btn" style="max-width:none;margin-top:14px;font-size:14px" onclick="openCustB(\'' + encodeURIComponent(p[0]) + '\')">👤 ' + T('custView') + '</button>' : '')
+    + '</div>';
+  return h;
+}
+function vCust(D, c) {
+  const P = (D.pl || []).filter(p => c.cid ? p[13] === c.cid : (p[1] === c.name && p[2] === c.mob));
+  const out = P.reduce((s, p) => s + p[5], 0), tot = P.reduce((s, p) => s + p[7], 0);
+  const lp = P.map(p => p[14]).filter(Boolean).sort().pop();
+  let h = '<div style="margin-top:12px"><button onclick="DETAIL=null;draw()" style="border:0;background:none;font:inherit;font-weight:800;color:var(--blue);padding:0">' + T('back') + '</button></div>';
+  h += '<div class="card"><div class="h"><span>👤 ' + esc(c.name || '') + '</span>' + callBtns(c.mob, P[0] ? remindText(P[0]) : '') + '</div>'
+    + '<div class="m" style="margin-bottom:8px">' + T('custTotals', { n: P.length, o: inr(out), t: inr(tot) }) + (lp ? ' · ' + T('lastPay') + ' ' + dmy(lp) : '') + '</div>'
+    + P.map(plRow).join('') + '</div>';
+  return h;
+}
+
+// ── Follow-up ──────────────────────────────────────────────────────────────
+function vFollow(D) {
+  const t = D.d, P = D.pl || [];
+  const in7 = (() => { const d = new Date(t + 'T00:00:00'); d.setDate(d.getDate() + 7); const p = n => String(n).padStart(2, '0'); return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()); })();
+  const L1 = P.filter(p => p[12] === t), L2 = P.filter(p => p[12] > t && p[12] <= in7).sort((a, b) => a[12] < b[12] ? -1 : 1), L3 = P.filter(p => p[11] > 90).sort((a, b) => b[11] - a[11]);
+  const s = SUB.follow, list = s === 'today' ? L1 : s === 'week' ? L2 : L3;
+  let h = '<div class="card"><div class="seg">'
+    + '<button class="' + (s === 'today' ? 'on' : '') + '" onclick="SUB.follow=\'today\';draw()">' + T('dueToday') + ' (' + L1.length + ')</button>'
+    + '<button class="' + (s === 'week' ? 'on' : '') + '" onclick="SUB.follow=\'week\';draw()">' + T('dueWeek') + ' (' + L2.length + ')</button>'
+    + '<button class="' + (s === 'od' ? 'on' : '') + '" onclick="SUB.follow=\'od\';draw()">' + T('overdue') + ' (' + L3.length + ')</button></div>';
+  h += list.length ? list.slice(0, 150).map(p => '<div class="row"><div class="tap" style="flex:1" onclick="openBill(\'' + encodeURIComponent(p[0]) + '\')"><b style="font-weight:800">' + esc(p[0]) + '</b>' + (p[1] ? ' · ' + esc(p[1]) : '') + '<div class="m">' + (s === 'od' ? T('days', { n: p[11] }) : T('nextDue') + ' ' + dmy(p[12])) + ' · ' + T('intDue') + ' ' + inr(p[6]) + '</div></div><b style="margin-right:4px">' + inr(p[7]) + '</b>' + callBtns(p[2], remindText(p)) + '</div>').join('') : '<div class="m">' + T('none') + '</div>';
+  return h + '</div>';
+}
+
+// ── Gold ───────────────────────────────────────────────────────────────────
+function vGold(D) {
+  const G = D.gold, R = D.risk;
+  if (!G) return '<div class="card"><div class="m">' + T('none') + '</div></div>';
+  let h = '<div class="card"><div class="h">' + T('goldStock') + '</div>';
+  h += G.rate ? '<div class="m" style="margin-bottom:8px">' + T('rateUsed', { r: inr(G.rate), src: T(G.src === 'shop' ? 'srcShop' : 'srcLive') }) + (G.at ? ' · ' + ago(G.at) : '') + '</div>' : '<div class="warn" style="margin:0 0 8px">' + T('noRate') + '</div>';
+  h += '<table><thead><tr><th>' + T('pur') + '</th><th class="r">' + T('wt') + '</th><th class="r">#</th><th class="r">' + T('value') + '</th></tr></thead><tbody>'
+    + (G.byP || []).map(x => '<tr><td>' + esc(x[0]) + '</td><td class="r">' + x[1].toLocaleString('en-IN') + ' g</td><td class="r">' + x[3] + '</td><td class="r">' + (G.rate ? short(x[2]) : '—') + '</td></tr>').join('')
+    + '<tr><td><b>' + T('total') + '</b></td><td class="r"><b>' + (G.wt || 0).toLocaleString('en-IN') + ' g</b></td><td></td><td class="r"><b>' + (G.rate ? short(G.val) : '—') + '</b></td></tr></tbody></table></div>';
+  if (R && G.rate) {
+    h += '<div class="card"><div class="h"><span>⚠️ ' + T('risky') + ' (' + (R.n || 0) + ')</span></div><div class="m" style="margin-bottom:6px">' + T('riskyHint', { p: R.th }) + '</div>';
+    h += (R.list || []).length ? R.list.map(r => '<div class="row"><div class="tap" style="flex:1" onclick="openBill(\'' + encodeURIComponent(r[0]) + '\')"><b style="font-weight:800">' + esc(r[0]) + '</b>' + (r[1] ? ' · ' + esc(r[1]) : '') + '<div class="m">' + T('owed') + ' ' + inr(r[3]) + ' · ' + T('gv') + ' ' + inr(r[4]) + '</div></div><span class="pct ' + (r[5] >= 100 ? 'p2' : 'p1') + '">' + r[5] + '%</span>' + callBtns(r[2], '') + '</div>').join('') : (D.lvl === 'figures' ? '' : '<div class="m">' + T('none') + '</div>');
+    h += '</div>';
+  }
+  return h;
+}
+
+// ── Reports ────────────────────────────────────────────────────────────────
+function collCard(D) {
+  const C = D.coll; if (!C) return '';
+  return '<div class="card"><div class="h"><span>' + T('coll') + '</span><span style="text-transform:none;font-weight:600">' + T('approx') + '</span></div><div class="grid">'
+    + '<div class="k"><div class="l">' + T('collWk') + '</div><div class="v">' + short(C.wk.exp) + '</div><div class="n">' + T('pledgesN', { n: C.wk.n }) + '</div></div>'
+    + '<div class="k"><div class="l">' + T('collMo') + '</div><div class="v">' + short(C.mo.exp) + '</div><div class="n">' + T('pledgesN', { n: C.mo.n }) + '</div></div>'
+    + '<div class="k"><div class="l">' + T('collGot') + '</div><div class="v green">' + short(C.mo.got) + '</div></div>'
+    + '<div class="k"><div class="l">' + T('accrued') + '</div><div class="v amber">' + short(C.accrued) + '</div></div></div></div>';
+}
+function mBars(rows, keys, colors) {
+  const Wd = 340, H = 120, n = rows.length, bw = Wd / n, max = Math.max(1, ...rows.map(r => Math.max(...keys.map(k => r[k]))));
+  return '<svg viewBox="0 0 ' + Wd + ' ' + (H + 20) + '" role="img">' + rows.map((r, i) => keys.map((k, j) => {
+    const w = (bw - 6) / keys.length, X = i * bw + 3 + j * w, h = Math.round(r[k] / max * (H - 6));
+    return '<rect x="' + X + '" y="' + (H - h) + '" width="' + Math.max(w - 1, 1) + '" height="' + Math.max(h, 1) + '" rx="2" fill="' + colors[j] + '"><title>' + r[0] + ': ' + inr(r[k]) + '</title></rect>';
+  }).join('') + '<text x="' + (i * bw + bw / 2) + '" y="' + (H + 14) + '" font-size="9" text-anchor="middle" fill="#6B7C70">' + ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'][+r[0].slice(5) - 1] + '</text>').join('') + '</svg>';
+}
+function vReports(D) {
+  let h = collCard(D);
+  const M = D.m12 || [];
+  if (M.length) {
+    h += '<div class="card"><div class="h">' + T('trend') + ' · ' + T('incomeM') + '</div>' + mBars(M, [1], ['#2E8B57']) + '<div class="legend"><span>' + short(M.reduce((s, r) => s + r[1], 0)) + ' · 12 m</span></div></div>';
+    h += '<div class="card"><div class="h">' + T('trend') + ' · ' + T('loansM') + ' / ' + T('redeemM') + '</div>' + mBars(M, [2, 4], ['#1A4A8C', '#C9A84C']) + '<div class="legend"><span><i style="background:#1A4A8C"></i>' + T('loansM') + '</span><span><i style="background:#C9A84C"></i>' + T('redeemM') + '</span></div></div>';
+    h += '<div class="card"><table><thead><tr><th></th><th class="r">' + T('incomeM') + '</th><th class="r">' + T('loansM') + '</th><th class="r">' + T('redeemM') + '</th></tr></thead><tbody>'
+      + M.slice().reverse().map(r => '<tr><td>' + r[0].slice(5) + '/' + r[0].slice(2, 4) + '</td><td class="r">' + short(r[1]) + '</td><td class="r">' + short(r[2]) + ' <span class="m">(' + r[3] + ')</span></td><td class="r">' + short(r[4]) + ' <span class="m">(' + r[5] + ')</span></td></tr>').join('') + '</tbody></table></div>';
+  }
+  return h || '<div class="card"><div class="m">' + T('none') + '</div></div>';
+}
+
+// ── Staff ──────────────────────────────────────────────────────────────────
+function vStaff(D) {
+  let h = '';
+  if (D.big) h += '<div class="card"><div class="h"><span>⚡ ' + T('big') + '</span><span>' + T('bigFrom', { a: short(D.big.th) }) + '</span></div>' + ((D.big.list || []).length ? D.big.list.map(txRow).join('') : '<div class="m">' + T('none') + '</div>') + '</div>';
+  h += '<div class="card"><div class="h">' + T('activity') + '</div>' + ((D.act || []).length ? D.act.map(a => '<div class="row"><div>' + esc(a[2]) + (a[3] ? ' · <b style="font-weight:800">' + esc(a[3]) + '</b>' : '') + '<div class="m">' + esc(a[0]) + (a[1] ? ' · ' + esc(a[1]) : '') + '</div></div></div>').join('') : '<div class="m">' + T('none') + '</div>') + '</div>';
+  const Pf = D.perf || [];
+  h += '<div class="card"><div class="h">' + T('perf') + '</div>' + (Pf.length ? '<table><thead><tr><th>' + T('staff') + '</th><th class="r">' + T('loansC') + '</th><th class="r">' + T('collC') + '</th></tr></thead><tbody>' + Pf.map(p => '<tr><td>' + esc(p[0]) + '</td><td class="r">' + short(p[2]) + ' <span class="m">(' + p[1] + ')</span></td><td class="r">' + short(p[4]) + ' <span class="m">(' + p[3] + ')</span></td></tr>').join('') + '</tbody></table>' : '<div class="m">' + T('none') + '</div>')
+    + (Pf.some(p => p[0] === 'Not recorded') ? '<div class="m" style="margin-top:6px">' + T('nostaff') + '</div>' : '') + '</div>';
+  return h;
+}
+
+// ── menu: language, stay unlocked, share, PDF ──────────────────────────────
+function menu() {
+  const m = stayMins();
+  const o = (v, k) => '<label class="opt"><input type="radio" name="stay" ' + (m === v ? 'checked' : '') + ' onchange="setStay(' + v + ')"> ' + T(k) + '</label>';
+  const s = document.createElement('div'); s.className = 'sheet'; s.id = 'sheet';
+  s.innerHTML = '<div><div style="font-weight:800;font-size:16px;margin-bottom:6px">' + T('menuT') + '</div>'
+    + '<div class="opt tap" onclick="setLang(LANG===\'en\'?\'ta\':\'en\');closeMenu()">🌐 ' + T('lang') + '</div>'
+    + '<div class="opt tap" onclick="shareToday()">📤 ' + T('share') + '</div>'
+    + '<div class="opt tap" onclick="closeMenu();setTimeout(()=>window.print(),200)">🖨 ' + T('pdf') + '</div>'
+    + '<div style="font-weight:800;margin:12px 0 2px">🔓 ' + T('stay') + '</div>' + o(0, 's0') + o(5, 's5') + o(60, 's60') + o(240, 's240')
+    + '<button class="btn" style="max-width:none" onclick="closeMenu()">' + T('close') + '</button></div>';
+  s.addEventListener('click', e => { if (e.target === s) closeMenu(); });
+  document.body.appendChild(s);
+}
+function closeMenu() { const s = document.getElementById('sheet'); if (s) s.remove(); }
+function setStay(v) { try { localStorage.setItem('ov_stay', String(v)); } catch (e) {} if (SEC) remember(); }
+function summaryText() {
+  const D = DATA, Td = D.today || {}, F = D.pf || {};
+  const L2 = [T('summaryTitle', { s: D.sn || '', d: dmy(D.d) }), '',
+    T('loansGiven') + ': ' + (Td.nL || 0) + ' · ' + inr(Td.aL),
+    T('received') + ': ' + inr(Td.aP) + ' (' + T('paymentsN', { n: Td.nP || 0, r: Td.nR || 0 }) + ')',
+    T('incomeToday') + ': ' + inr(Td.inc),
+    T('thisMonth') + ': ' + inr((D.month || {}).inc), '',
+    T('active') + ': ' + (F.n || 0) + ' · ' + T('outstanding') + ' ' + short(F.prin),
+    T('od90') + ': ' + (F.od || 0) + ' (' + short(F.odPrin) + ')',
+    T('due7') + ': ' + (F.due7 || 0)];
+  return L2.join('\n');
+}
+async function shareToday() {
+  const text = summaryText();
+  closeMenu();
+  try { if (navigator.share) { await navigator.share({ text }); return; } } catch (e) { if (e && e.name === 'AbortError') return; }
+  window.open('https://wa.me/?text=' + encodeURIComponent(text), '_blank', 'noopener');
 }
 </script>
 </body>
