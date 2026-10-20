@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
 <meta name="referrer" content="no-referrer">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; connect-src https:; base-uri 'none'; form-action 'none'">
 <meta name="theme-color" content="#0F2A1A">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -156,7 +157,8 @@ const W = {
   bioOn: ['Done. Next time, tap "Unlock with fingerprint / face". Your passcode still works.', 'முடிந்தது. அடுத்த முறை "கைரேகை / முகம் மூலம் திற" தட்டவும். கடவுச்சொல்லும் செயல்படும்.'],
   bioNo: ["This phone or browser can't do fingerprint / face unlock for web pages. Keep using the passcode.", 'இந்த தொலைபேசி இணையப் பக்கங்களுக்கு கைரேகை திறப்பை ஆதரிக்கவில்லை. கடவுச்சொல்லைப் பயன்படுத்தவும்.'],
   bioFail: ['Fingerprint / face did not open it. Use your passcode.', 'கைரேகை / முகம் மூலம் திறக்கவில்லை. கடவுச்சொல்லைப் பயன்படுத்தவும்.'], bioBtn: ['👆 Unlock with fingerprint / face', '👆 கைரேகை / முகம் மூலம் திற'],
-  photoNone: ['No photo uploaded yet.', 'புகைப்படம் இன்னும் இல்லை.']
+  photoNone: ['No photo uploaded yet.', 'புகைப்படம் இன்னும் இல்லை.'],
+  noNet: ['Cannot reach the shop server. Check the internet and tap ↻.', 'கடை சேவையகத்தை அணுக முடியவில்லை. இணையத்தைச் சரிபார்த்து ↻ தட்டவும்.']
 };
 let LANG = 'en'; try { LANG = localStorage.getItem('ov_lang') || 'en'; } catch (e) {}
 function themePref() { try { return localStorage.getItem('ov_theme') || 'auto'; } catch (e) { return 'auto'; } }
@@ -178,6 +180,7 @@ const inr = (n) => '₹' + Math.round(+n || 0).toLocaleString('en-IN');
 const short = (n) => { n = +n || 0; if (Math.abs(n) >= 1e7) return '₹' + (n / 1e7).toFixed(2) + ' Cr'; if (Math.abs(n) >= 1e5) return '₹' + (n / 1e5).toFixed(2) + ' L'; return inr(n); };
 const dmy = (s) => s ? String(s).split('-').reverse().join('/') : '—';
 function ago(ts) { const m = Math.round((Date.now() - ts) / 60000); if (m < 1) return T('justnow'); if (m < 60) return T('minago', { n: m }); const h = Math.round(m / 60); if (h < 24) return T('hago', { n: h }); return new Date(ts).toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }); }
+function U(x) { return encodeURIComponent(String(x)).replace(/'/g, '%27'); }
 function tel(m) { return m && m.length === 10 ? 'tel:+91' + m : ''; }
 function wa(m, text) { return m && m.length === 10 ? 'https://wa.me/91' + m + '?text=' + encodeURIComponent(text) : ''; }
 function callBtns(mob, text) { if (!mob) return ''; return '<span class="acts"><a href="' + tel(mob) + '" aria-label="Call">📞</a><a href="' + wa(mob, text) + '" target="_blank" rel="noopener" aria-label="WhatsApp">💬</a></span>'; }
@@ -268,14 +271,16 @@ async function lock(forget) {
   document.getElementById('view').innerHTML = ''; document.getElementById('acts').style.display = 'none'; document.getElementById('tabs').style.display = 'none';
   document.getElementById('gate').style.display = ''; document.getElementById('err').textContent = ''; document.getElementById('upd').textContent = '';
 }
+let HIDDEN_AT = 0;
 document.addEventListener('visibilitychange', () => {
   if (!SEC) return;
   const m = stayMins();
-  if (document.hidden) {
-    clearTimeout(window.__idle);
-    if (m === 0) lock(true); else if (m < 60) window.__idle = setTimeout(() => lock(true), m * 60000);
-  } else { clearTimeout(window.__idle); load(false); }
+  if (document.hidden) { HIDDEN_AT = Date.now(); if (m === 0) lock(true); return; }
+  // phones pause timers while asleep, so the time away is measured on return
+  if (HIDDEN_AT && Date.now() - HIDDEN_AT > m * 60000) { HIDDEN_AT = 0; lock(true); return; }
+  HIDDEN_AT = 0; load(false);
 });
+window.addEventListener('pageshow', e => { if (e.persisted && SEC && HIDDEN_AT && Date.now() - HIDDEN_AT > stayMins() * 60000) lock(true); });
 
 // ── fetch + decrypt (and keep the encrypted copy for offline use) ──────────
 async function decryptBlob(text) {
@@ -301,13 +306,22 @@ async function load(manual) {
   } catch (e) {
     if (e.message === 'gone') { DATA = null; document.getElementById('view').innerHTML = '<div class="bad">' + T('gone') + '</div>'; upd.textContent = ''; return; }
     try { const c = localStorage.getItem(ck); if (c && (!DATA || manual)) { DATA = await decryptBlob(c); DATA.__off = true; draw(); return; } } catch (x) {}
-    if (DATA) { DATA.__off = true; draw(); }
+    if (DATA) { DATA.__off = true; draw(); return; }
+    document.getElementById('view').innerHTML = '<div class="bad">' + T('noNet') + '</div>';
+    upd.textContent = '';
   }
 }
 
 // ── tabs ───────────────────────────────────────────────────────────────────
 function tabsFor(D) { const fig = D.lvl === 'figures'; const t = ['home']; if (!fig && D.pl) t.push('search', 'follow'); t.push('gold'); if (D.bank && (D.bank.by || []).length) t.push('banks'); t.push('reports'); if (!fig && D.act) t.push('staff'); return t; }
-function go(t) { TAB = t; DETAIL = null; draw(); window.scrollTo(0, 0); }
+function nav() { try { history.pushState({ ov: 1, tab: TAB, detail: DETAIL, follow: SUB.follow, rep: document.body.classList.contains('rep') }, ''); } catch (e) {} }
+window.addEventListener('popstate', e => {
+  const st = e.state; if (!SEC || !DATA) return;
+  if (document.body.classList.contains('rep')) closeReport(true);
+  if (!st || !st.ov) { TAB = 'home'; DETAIL = null; draw(); return; }
+  TAB = st.tab || 'home'; DETAIL = st.detail || null; if (st.follow) SUB.follow = st.follow; draw();
+});
+function go(t) { TAB = t; DETAIL = null; draw(); window.scrollTo(0, 0); nav(); }
 function draw() {
   const D = DATA; if (!D) return;
   document.getElementById('shop').textContent = (D.sn || L.hdr.sn || 'Shop') + (L.hdr.lb ? ' · ' + L.hdr.lb : '');
@@ -366,13 +380,13 @@ function vHome(D) {
   const DY = D.days || [];
   if (DY.length) h += '<div class="card"><div class="h">' + T('closing') + '</div>' + DY.map(x => { const f = x[1] || {}; return '<div class="row"><div>' + dmy(x[0]) + '<div class="m">' + (f.nL || 0) + ' ' + T('L') + ' · ' + inr(f.aL) + ' · ' + T('P') + ' ' + inr(f.aP) + ' · ' + (f.nR || 0) + ' ' + T('R') + (f.close != null ? ' · ' + inr(f.close) : '') + '</div></div><b>' + inr(f.inc) + '</b></div>'; }).join('') + '</div>';
   const O = D.odTop || [];
-  if (O.length) h += '<div class="card"><div class="h">' + T('longest') + '</div>' + O.map(o => '<div class="row tap" onclick="openBill(\'' + encodeURIComponent(o[0]) + '\')"><div>' + esc(o[0]) + (o[1] ? ' · ' + esc(o[1]) : '') + '<div class="m">' + T('days', { n: o[2] }) + '</div></div><b>' + inr(o[3]) + '</b></div>').join('') + '</div>';
+  if (O.length) h += '<div class="card"><div class="h">' + T('longest') + '</div>' + O.map(o => '<div class="row tap" onclick="openBill(\'' + U(o[0]) + '\')"><div>' + esc(o[0]) + (o[1] ? ' · ' + esc(o[1]) : '') + '<div class="m">' + T('days', { n: o[2] }) + '</div></div><b>' + inr(o[3]) + '</b></div>').join('') + '</div>';
   return h;
 }
 
 // ── Search · pledge detail · customer view ─────────────────────────────────
 // pl row: 0 bill,1 name,2 mobile,3 date,4 amount,5 outstanding,6 interest due,7 to redeem,8 weight,9 purity,10 item,11 days,12 next due,13 customer id,14 last payment
-function plRow(p) { return '<div class="row tap" onclick="openBill(\'' + encodeURIComponent(p[0]) + '\')"><div><b style="font-weight:800">' + esc(p[0]) + '</b>' + (p[1] ? ' · ' + esc(p[1]) : '') + '<div class="m">' + dmy(p[3]) + ' · ' + p[8] + ' g · ' + T('days', { n: p[11] }) + '</div></div><b>' + inr(p[7]) + '</b></div>'; }
+function plRow(p) { return '<div class="row tap" onclick="openBill(\'' + U(p[0]) + '\')"><div><b style="font-weight:800">' + esc(p[0]) + '</b>' + (p[1] ? ' · ' + esc(p[1]) : '') + '<div class="m">' + dmy(p[3]) + ' · ' + p[8] + ' g · ' + T('days', { n: p[11] }) + '</div></div><b>' + inr(p[7]) + '</b></div>'; }
 function vSearch(D) {
   if (DETAIL) return DETAIL.cust ? vCust(D, DETAIL) : vBill(D, DETAIL.bill);
   let h = '<div class="card"><input id="q" placeholder="' + esc(T(D.lvl === 'nonames' ? 'searchPhB' : 'searchPh')) + '" oninput="Q=this.value;results()" autocomplete="off" inputmode="search"><div id="res" style="margin-top:8px">' + resultsHtml(D) + '</div></div>';
@@ -390,14 +404,14 @@ function resultsHtml(D) {
   if (!hit.length) return '<div class="m">' + T('noMatch') + '</div>';
   return hit.slice(0, 40).map(plRow).join('') + (hit.length > 40 ? '<div class="m" style="margin-top:6px">' + T('more', { n: hit.length - 40 }) + '</div>' : '');
 }
-function openBill(b) { b = decodeURIComponent(b); TAB = 'search'; DETAIL = { bill: b }; draw(); window.scrollTo(0, 0); }
-function openTop(kind, i) { const r = ((DATA.top || {})[kind] || [])[i]; if (!r) return; TAB = 'search'; DETAIL = { cust: true, cid: r[2], name: r[0], mob: r[1] }; draw(); window.scrollTo(0, 0); }
+function openBill(b) { b = decodeURIComponent(b); TAB = 'search'; DETAIL = { bill: b }; draw(); window.scrollTo(0, 0); nav(); }
+function openTop(kind, i) { const r = ((DATA.top || {})[kind] || [])[i]; if (!r) return; TAB = 'search'; DETAIL = { cust: true, cid: r[2], name: r[0], mob: r[1] }; draw(); window.scrollTo(0, 0); nav(); }
 function openCustB(b) { const p = (DATA.pl || []).find(x => String(x[0]) === decodeURIComponent(b)); if (p) openCust(p[13], p[1], p[2]); }
-function openCust(cid, name, mob) { DETAIL = { cust: true, cid, name, mob }; draw(); window.scrollTo(0, 0); }
+function openCust(cid, name, mob) { DETAIL = { cust: true, cid, name, mob }; draw(); window.scrollTo(0, 0); nav(); }
 function remindText(p) { return T('remind', { n: p[1] || '', s: DATA.sn || '', b: p[0], a: inr(p[6] > 0 ? p[6] : p[7]) }); }
 function vBill(D, b) {
   const p = (D.pl || []).find(x => String(x[0]) === String(b));
-  let h = '<div style="margin-top:12px"><button class="seg-b" onclick="DETAIL=null;draw()" style="border:0;background:none;font:inherit;font-weight:800;color:var(--blue);padding:0">' + T('back') + '</button></div>';
+  let h = '<div style="margin-top:12px"><button class="seg-b" onclick="history.back()" style="border:0;background:none;font:inherit;font-weight:800;color:var(--blue);padding:0">' + T('back') + '</button></div>';
   if (!p) return h + '<div class="card"><div class="m">' + T('noMatch') + '</div></div>';
   h += '<div class="card"><div class="h"><span>' + T('bill') + ' ' + esc(p[0]) + '</span>' + callBtns(p[2], remindText(p)) + '</div>'
     + (p[1] ? '<div style="font-size:18px;font-weight:800;margin-bottom:8px">' + esc(p[1]) + '</div>' : '')
@@ -408,7 +422,7 @@ function vBill(D, b) {
     + '<span>' + T('item') + '</span><b style="font-weight:600">' + esc(p[10] || '—') + '</b>'
     + '<span>' + T('daysSince') + '</span><b>' + p[11] + '</b><span>' + T('nextDue') + '</span><b>' + dmy(p[12]) + '</b><span>' + T('lastPay') + '</span><b>' + dmy(p[14]) + '</b></div>'
     + '<div class="ph" id="ph"></div>'
-    + ((p[13] || p[1]) ? '<button class="btn" style="max-width:none;margin-top:14px;font-size:14px" onclick="openCustB(\'' + encodeURIComponent(p[0]) + '\')">👤 ' + T('custView') + '</button>' : '')
+    + ((p[13] || p[1]) ? '<button class="btn" style="max-width:none;margin-top:14px;font-size:14px" onclick="openCustB(\'' + U(p[0]) + '\')">👤 ' + T('custView') + '</button>' : '')
     + '</div>';
   return h;
 }
@@ -416,7 +430,7 @@ function vCust(D, c) {
   const P = (D.pl || []).filter(p => c.cid ? p[13] === c.cid : (p[1] === c.name && p[2] === c.mob));
   const out = P.reduce((s, p) => s + p[5], 0), tot = P.reduce((s, p) => s + p[7], 0);
   const lp = P.map(p => p[14]).filter(Boolean).sort().pop();
-  let h = '<div style="margin-top:12px"><button onclick="DETAIL=null;draw()" style="border:0;background:none;font:inherit;font-weight:800;color:var(--blue);padding:0">' + T('back') + '</button></div>';
+  let h = '<div style="margin-top:12px"><button onclick="history.back()" style="border:0;background:none;font:inherit;font-weight:800;color:var(--blue);padding:0">' + T('back') + '</button></div>';
   h += '<div class="card"><div class="h"><span>👤 ' + esc(c.name || '') + '</span>' + callBtns(c.mob, P[0] ? remindText(P[0]) : '') + '</div>'
     + '<div class="m" style="margin-bottom:8px">' + T('custTotals', { n: P.length, o: inr(out), t: inr(tot) }) + (lp ? ' · ' + T('lastPay') + ' ' + dmy(lp) : '') + '</div>'
     + P.map(plRow).join('') + '</div>';
@@ -435,7 +449,7 @@ function vFollow(D) {
   if (s === 'auc') return h + vAuc(D) + '</div>';
   if (s === 'emi') return h + vEmi(D) + '</div>';
   if (s === 'bday') return h + (D.bday || []).map(bdayRow).join('') + '</div>';
-  h += list.length ? list.slice(0, 150).map(p => '<div class="row"><div class="tap" style="flex:1" onclick="openBill(\'' + encodeURIComponent(p[0]) + '\')"><b style="font-weight:800">' + esc(p[0]) + '</b>' + (p[1] ? ' · ' + esc(p[1]) : '') + '<div class="m">' + (s === 'od' ? T('days', { n: p[11] }) : T('nextDue') + ' ' + dmy(p[12])) + ' · ' + T('intDue') + ' ' + inr(p[6]) + '</div></div><b style="margin-right:4px">' + inr(p[7]) + '</b>' + callBtns(p[2], remindText(p)) + '</div>').join('') : '<div class="m">' + T('none') + '</div>';
+  h += list.length ? list.slice(0, 150).map(p => '<div class="row"><div class="tap" style="flex:1" onclick="openBill(\'' + U(p[0]) + '\')"><b style="font-weight:800">' + esc(p[0]) + '</b>' + (p[1] ? ' · ' + esc(p[1]) : '') + '<div class="m">' + (s === 'od' ? T('days', { n: p[11] }) : T('nextDue') + ' ' + dmy(p[12])) + ' · ' + T('intDue') + ' ' + inr(p[6]) + '</div></div><b style="margin-right:4px">' + inr(p[7]) + '</b>' + callBtns(p[2], remindText(p)) + '</div>').join('') : '<div class="m">' + T('none') + '</div>';
   return h + '</div>';
 }
 
@@ -450,7 +464,7 @@ function vGold(D) {
     + '<tr><td><b>' + T('total') + '</b></td><td class="r"><b>' + (G.wt || 0).toLocaleString('en-IN') + ' g</b></td><td></td><td class="r"><b>' + (G.rate ? short(G.val) : '—') + '</b></td></tr></tbody></table></div>';
   if (R && G.rate) {
     h += '<div class="card"><div class="h"><span>⚠️ ' + T('risky') + ' (' + (R.n || 0) + ')</span></div><div class="m" style="margin-bottom:6px">' + T('riskyHint', { p: R.th }) + '</div>';
-    h += (R.list || []).length ? R.list.map(r => '<div class="row"><div class="tap" style="flex:1" onclick="openBill(\'' + encodeURIComponent(r[0]) + '\')"><b style="font-weight:800">' + esc(r[0]) + '</b>' + (r[1] ? ' · ' + esc(r[1]) : '') + '<div class="m">' + T('owed') + ' ' + inr(r[3]) + ' · ' + T('gv') + ' ' + inr(r[4]) + '</div></div><span class="pct ' + (r[5] >= 100 ? 'p2' : 'p1') + '">' + r[5] + '%</span>' + callBtns(r[2], '') + '</div>').join('') : (D.lvl === 'figures' ? '' : '<div class="m">' + T('none') + '</div>');
+    h += (R.list || []).length ? R.list.map(r => '<div class="row"><div class="tap" style="flex:1" onclick="openBill(\'' + U(r[0]) + '\')"><b style="font-weight:800">' + esc(r[0]) + '</b>' + (r[1] ? ' · ' + esc(r[1]) : '') + '<div class="m">' + T('owed') + ' ' + inr(r[3]) + ' · ' + T('gv') + ' ' + inr(r[4]) + '</div></div><span class="pct ' + (r[5] >= 100 ? 'p2' : 'p1') + '">' + r[5] + '%</span>' + callBtns(r[2], '') + '</div>').join('') : (D.lvl === 'figures' ? '' : '<div class="m">' + T('none') + '</div>');
     h += '</div>';
   }
   return h;
@@ -560,7 +574,7 @@ function vEmi(D) {
   const E = D.emi; if (!E) return '';
   const mk = (title, rows, fn) => rows.length ? '<div class="h" style="margin-top:10px">' + title + '</div>' + rows.map(fn).join('') : '';
   const text = (r, a) => T('remind', { n: r[1] || '', s: D.sn || '', b: r[0], a: inr(a) });
-  return mk(T('emiMissed') + ' (' + E.missed.length + ')', E.missed, r => '<div class="row"><div class="tap" style="flex:1" onclick="openBill(\'' + encodeURIComponent(r[0]) + '\')"><b style="font-weight:800">' + esc(r[0]) + '</b>' + (r[1] ? ' · ' + esc(r[1]) : '') + '<div class="m">' + T('emiN', { n: r[4], d: dmy(r[5]) }) + '</div></div><b class="red" style="margin-right:4px">' + inr(r[3]) + '</b>' + callBtns(r[2], text(r, r[3])) + '</div>')
+  return mk(T('emiMissed') + ' (' + E.missed.length + ')', E.missed, r => '<div class="row"><div class="tap" style="flex:1" onclick="openBill(\'' + U(r[0]) + '\')"><b style="font-weight:800">' + esc(r[0]) + '</b>' + (r[1] ? ' · ' + esc(r[1]) : '') + '<div class="m">' + T('emiN', { n: r[4], d: dmy(r[5]) }) + '</div></div><b class="red" style="margin-right:4px">' + inr(r[3]) + '</b>' + callBtns(r[2], text(r, r[3])) + '</div>')
     + mk(T('emiDue') + ' (' + E.due.length + ')', E.due, r => '<div class="row"><div style="flex:1"><b style="font-weight:800">' + esc(r[0]) + '</b>' + (r[1] ? ' · ' + esc(r[1]) : '') + '<div class="m">' + T('emiInst', { m: r[4] }) + (r[5] ? ' · ✅' : '') + '</div></div><b style="margin-right:4px">' + inr(r[3]) + '</b>' + (r[5] ? '' : callBtns(r[2], text(r, r[3]))) + '</div>')
     + mk(T('emiPaid') + ' (' + E.paid.length + ')', E.paid, r => '<div class="row"><div><b style="font-weight:800">' + esc(r[0]) + '</b>' + (r[1] ? ' · ' + esc(r[1]) : '') + '<div class="m">' + T('emiInst', { m: r[3] }) + '</div></div><b class="green">' + inr(r[2]) + '</b></div>')
     || '<div class="m">' + T('none') + '</div>';
@@ -574,7 +588,7 @@ function vAuc(D) {
   const k = SUB.auc, L2 = (A.list || []).filter(r => r[5] === k);
   const b = (v, label, n) => '<button class="' + (k === v ? 'on' : '') + '" onclick="SUB.auc=\'' + v + '\';draw()">' + label + ' (' + n + ')</button>';
   return '<div class="m" style="margin:2px 0 8px">' + T('aucHint') + '</div><div class="seg">' + b('ready', T('aucReady'), A.ready) + b('sent', T('aucSent'), A.sent) + b('none', T('aucNone'), A.none) + '</div>'
-    + (L2.length ? L2.map(r => '<div class="row"><div class="tap" style="flex:1" onclick="openBill(\'' + encodeURIComponent(r[0]) + '\')"><b style="font-weight:800">' + esc(r[0]) + '</b>' + (r[1] ? ' · ' + esc(r[1]) : '') + '<div class="m">' + T('days', { n: r[3] }) + (r[6] ? ' · ' + T('noticeOn', { d: dmy(r[6]), e: dmy(r[7]) }) + (r[8] ? ' · ' + esc(r[8]) : '') : '') + '</div></div><b style="margin-right:4px">' + inr(r[4]) + '</b>' + callBtns(r[2], '') + '</div>').join('') : '<div class="m">' + T('none') + '</div>');
+    + (L2.length ? L2.map(r => '<div class="row"><div class="tap" style="flex:1" onclick="openBill(\'' + U(r[0]) + '\')"><b style="font-weight:800">' + esc(r[0]) + '</b>' + (r[1] ? ' · ' + esc(r[1]) : '') + '<div class="m">' + T('days', { n: r[3] }) + (r[6] ? ' · ' + T('noticeOn', { d: dmy(r[6]), e: dmy(r[7]) }) + (r[8] ? ' · ' + esc(r[8]) : '') : '') + '</div></div><b style="margin-right:4px">' + inr(r[4]) + '</b>' + callBtns(r[2], '') + '</div>').join('') : '<div class="m">' + T('none') + '</div>');
 }
 
 // ── Birthdays ──────────────────────────────────────────────────────────────
@@ -622,9 +636,9 @@ function openReport(mk) {
     + '<h2>' + T('repBook', { d: dmy(D.d) }) + '</h2><table><tbody>' + row(T('active'), (F.n || 0)) + row(T('outstanding'), inr(F.prin)) + row(T('od90'), (F.od || 0) + ' · ' + inr(F.odPrin)) + row(T('gGold', { n: (F.gold || 0).toLocaleString('en-IN') }), '') + '</tbody></table>'
     + '<p style="font-size:11px;color:#666;margin-top:14px">' + T('repNote') + '</p>';
   const R = document.getElementById('report'); R.innerHTML = h;
-  document.body.classList.add('rep'); window.scrollTo(0, 0);
+  document.body.classList.add('rep'); window.scrollTo(0, 0); nav();
 }
-function closeReport() { document.body.classList.remove('rep'); document.getElementById('report').innerHTML = ''; }
+function closeReport(fromBack) { document.body.classList.remove('rep'); document.getElementById('report').innerHTML = ''; if (!fromBack) try { history.back(); } catch (e) {} }
 
 // ── fingerprint / face unlock (WebAuthn passkey + PRF; nothing leaves the phone)
 function bioKeyName() { return 'ov_bio_' + (L ? L.tag : ''); }
