@@ -177,7 +177,7 @@
   #stickybar .sb-l{font-size:11px;font-weight:500;color:rgba(255,255,255,.7);display:block;text-align:right;}
 
   /* ── Live status chip ──────────────────────────────────────────────────── */
-  #pblive{display:flex;align-items:center;justify-content:center;gap:var(--s2);
+  #pblive{display:flex;width:100%;align-items:center;justify-content:center;gap:var(--s2);
     margin:0 0 var(--s3)!important;padding:9px var(--s3)!important;border-radius:var(--r2)!important;
     font-size:12px;font-weight:700;text-align:center;line-height:1.45;box-shadow:var(--shadow-1);
     animation:fadeUp .35s var(--ease-out) both;}
@@ -1193,7 +1193,10 @@ function pbLiveBanner(kind, text) {
     el.style.cssText = 'margin:0 0 11px;padding:8px 12px;border-radius:10px;font-size:11.5px;font-weight:700;text-align:center;';
     const bk = document.getElementById('book');
     if (!bk) return;
-    bk.insertBefore(el, bk.firstChild);
+    // v16: the status sits under the customer card, never over the header edge
+    const hero = bk.querySelector('.sumhero');
+    if (hero && hero.parentNode === bk) bk.insertBefore(el, hero.nextSibling);
+    else bk.insertBefore(el, bk.firstChild);
   }
   const c = { live:['#E6F6EC','#1A5C2C'], stale:['#FFF7E6','#8A5A00'], busy:['#EEF3F8','#3A5A7A'] }[kind] || ['#EEF3F8','#3A5A7A'];
   el.style.background = c[0]; el.style.color = c[1]; el.textContent = text;
