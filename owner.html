@@ -181,6 +181,63 @@ body.rep .wrap,body.rep .tabs{display:none!important}body.rep #report{display:bl
 @media (max-width:360px){.hero .hv{font-size:38px}.tile .tv{font-size:22px}.tabs button span{font-size:9.5px}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 @media print{.tabs,.tb,.foot,.sheet,#gate,.noprint{display:none!important}body{background:#fff}.card{break-inside:avoid}html[data-theme=dark] body{background:#fff}}
+/* v313 · comparisons, goals, cash, what-if, health, heatmap, call back, opens */
+.cmp{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+.cmp span{font-size:11px;font-weight:700;border-radius:999px;padding:1px 7px;background:rgba(255,255,255,.2);white-space:nowrap}
+.goals{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.goal{display:flex;align-items:center;gap:10px;min-width:0}
+.ring{position:relative;flex:0 0 74px;width:74px;height:74px}
+.ring svg{width:74px;height:74px;transform:rotate(-90deg)}
+.ring circle{fill:none;stroke-width:8}
+.ring .bg{stroke:var(--soft)}
+.ring .fg{stroke-linecap:round;transition:stroke-dashoffset 1.1s var(--ease)}
+.ring .pc{position:absolute;inset:0;display:grid;place-items:center;font-weight:700;font-size:15px;font-variant-numeric:tabular-nums}
+.goal .gl{font-size:12.5px;color:var(--muted);font-weight:600;line-height:1.25}
+.goal .gv{font-size:16px;font-weight:700;font-variant-numeric:tabular-nums;margin-top:2px}
+.goal .gs{font-size:11.5px;color:var(--muted)}
+.pace{margin-top:10px;font-size:12.5px;font-weight:600;border-radius:12px;padding:8px 11px;background:var(--soft)}
+.linkb{border:0;background:none;font:inherit;font-weight:700;color:var(--blue);padding:0;cursor:pointer;font-size:13px}
+.cashhero{display:flex;justify-content:space-between;align-items:flex-end;gap:10px;flex-wrap:wrap}
+.cashhero .v{font-size:28px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.1}
+.cashhero .l{font-size:12.5px;color:var(--muted);font-weight:600}
+.io{display:flex;gap:8px;margin-top:10px}
+.io>div{flex:1;border-radius:13px;padding:9px 11px;background:var(--t-leaf)}
+.io>div:last-child{background:var(--t-kumkum)}
+.io .l{font-size:12px;color:var(--muted);font-weight:600}.io .v{font-size:16px;font-weight:700;font-variant-numeric:tabular-nums}
+.slider{width:100%;accent-color:var(--kumkum);margin:10px 0 4px;height:28px}
+.wiv{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px}
+.wiv>div{border-radius:13px;padding:9px 10px;background:var(--t-kumkum)}
+.wiv>div:first-child{background:var(--t-turmeric)}.wiv>div:last-child{background:var(--t-lotus)}
+.wiv .l{font-size:11.5px;color:var(--muted);font-weight:600;line-height:1.2}.wiv .v{font-size:17px;font-weight:700;font-variant-numeric:tabular-nums;margin-top:2px}
+.wid{display:flex;justify-content:space-between;font-size:12px;color:var(--muted)}
+.wibig{font-size:30px;font-weight:700;color:var(--kumkum);font-variant-numeric:tabular-nums}
+html[data-theme=dark] .wibig{color:#FF8FA6}
+.hb{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 10px;padding:8px 0;border-bottom:1px solid var(--line);align-items:center}
+.hb:last-child{border-bottom:0}
+.hb .t{font-size:13.5px;font-weight:600}.hb .a{font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;text-align:right}
+.hb .bar2{grid-column:1/-1;height:7px;border-radius:9px;background:var(--soft);overflow:hidden}
+.hb .bar2 i{display:block;height:100%;border-radius:9px;transition:width .9s var(--ease)}
+.hm{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-top:8px}
+.hm .wd{font-size:11px;color:var(--muted);text-align:center;font-weight:600}
+.hm button{aspect-ratio:1;border:0;border-radius:9px;font:inherit;font-size:12px;font-weight:600;color:var(--ink);cursor:pointer;background:var(--soft);padding:0;position:relative}
+.hm button.l1{background:#CDE6E8}.hm button.l2{background:#8CC6CC}.hm button.l3{background:#3E98A4;color:#fff}.hm button.l4{background:#0F4C5C;color:#FFF6DD}
+html[data-theme=dark] .hm button.l1{background:#163D45}html[data-theme=dark] .hm button.l2{background:#1F5F69}
+.hm button.sel{outline:2.5px solid var(--zari);outline-offset:1px}
+.hm button.fut{opacity:.35;cursor:default}
+.hm .em{visibility:hidden}
+.hmk{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--muted);margin-top:8px;justify-content:flex-end}
+.hmk i{width:14px;height:14px;border-radius:4px;display:inline-block;background:var(--soft)}
+.hmnav{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:4px}
+.hmnav b{font-size:15px}
+.hmnav button{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:10px;width:36px;height:34px;font:inherit;font-size:16px;cursor:pointer}
+.hmnav button:disabled{opacity:.35}
+.hmday{margin-top:10px;border-radius:13px;background:var(--soft);padding:10px 12px;font-size:13px}
+.wkimg{width:100%;border-radius:14px;border:1px solid var(--line);display:block;margin-top:8px}
+.seenr{padding:10px 0;border-bottom:1px solid var(--line);font-size:14px}.seenr:last-child{border-bottom:0}
+.seenr .ok{color:var(--g);font-weight:700}.seenr .no{color:var(--a);font-weight:700}
+.ginp{display:grid;grid-template-columns:1fr;gap:6px;margin:10px 0}
+.ginp label{font-size:13px;font-weight:600;color:var(--muted)}
+.ginp input{font:inherit;font-size:17px;padding:11px 12px;border-radius:12px;border:1px solid var(--line);background:var(--inbg);color:var(--ink);width:100%}
 </style>
 </head>
 <body>
@@ -218,6 +275,44 @@ var LZString=function(){var r=String.fromCharCode,o="ABCDEFGHIJKLMNOPQRSTUVWXYZa
 'use strict';
 // ── words (English / Tamil) ────────────────────────────────────────────────
 const W = {
+  vsWk: ['vs last {d}', 'கடந்த {d} விட'], vsMo: ['vs {d}', '{d} விட'],
+  cashSec: ['Cash', 'பணம்'], cashT: ['Cash position', 'பண நிலை'], cashHand: ['Cash in hand (Day Book)', 'கை இருப்பு (தினசரி கணக்கு)'], inBanks: ['In banks', 'வங்கிகளில்'],
+  cashIn: ['Cash in today', 'இன்று வரவு'], cashOut: ['Cash out today', 'இன்று செலவு'], cashTot: ['Cash + banks', 'கை இருப்பு + வங்கி'],
+  noDB: ['The Day Book figure will appear after the shop computer sends its next update.', 'தினசரி கணக்கு அடுத்த புதுப்பிப்பில் வரும்.'],
+  lastCount: ['Last cash count {d}: counted {p} · book {b}', 'கடைசி பண எண்ணிக்கை {d}: எண்ணியது {p} · கணக்கு {b}'],
+  cMatch: ['matches', 'சரியாக உள்ளது'], cShort: ['short by {a}', '{a} குறைவு'], cExtra: ['extra {a}', '{a} அதிகம்'],
+  goalsT: ['This month’s goals', 'இந்த மாத இலக்குகள்'], goalSet: ['Set goals', 'இலக்கு அமை'], goalEdit: ['Change', 'மாற்று'],
+  goalNone: ['Set a target for loans given and interest collected this month, and watch the rings fill up.', 'இந்த மாதம் கொடுக்கும் கடன், வசூலிக்கும் வட்டிக்கு இலக்கு அமைத்து முன்னேற்றத்தைப் பாருங்கள்.'],
+  gLoans: ['Loans given', 'கொடுத்த கடன்'], gInt: ['Interest collected', 'வசூலான வட்டி'], gOf: ['of {t}', 'இலக்கு {t}'],
+  gAhead: ['{g}: on pace for the month', '{g}: இலக்கை நோக்கி சரியாக உள்ளது'], gBehind: ['{g}: {a} behind where you’d want to be by today', '{g}: இன்றைய எதிர்பார்ப்பை விட {a} குறைவு'],
+  goalsHint: ['Goals are kept on this phone only.', 'இலக்குகள் இந்த தொலைபேசியில் மட்டும் சேமிக்கப்படும்.'], gSave: ['Save', 'சேமி'],
+  goalL: ['Loans to give this month (₹)', 'இந்த மாதம் கொடுக்கும் கடன் (₹)'], goalI: ['Interest to collect this month (₹)', 'இந்த மாதம் வசூலிக்கும் வட்டி (₹)'],
+  wiT: ['What if gold falls?', 'தங்க விலை குறைந்தால்?'],
+  wiHint: ['Drag to see how many loans become risky (owed ≥ {p}% of gold value) if the gold rate drops.', 'தங்க விலை குறைந்தால் எத்தனை கடன்கள் ஆபத்தாகும் (நிலுவை ≥ தங்க மதிப்பின் {p}%) என்று பார்க்க இழுக்கவும்.'],
+  wiNow: ['Today’s rate', 'இன்றைய விலை'], wiRate: ['24K rate would be {r}/g', '24K விலை {r}/கி ஆகும்'],
+  wiN: ['Risky loans', 'ஆபத்தான கடன்கள்'], wiOwed: ['Owed on them', 'அவற்றின் நிலுவை'], wiShort: ['Money exposed', 'ஆபத்திலுள்ள தொகை'],
+  wiShortH: ['Money exposed = how much more is owed than the gold is worth.', 'ஆபத்திலுள்ள தொகை = தங்க மதிப்பை விட அதிகமாக உள்ள நிலுவை.'],
+  wiList: ['Show these loans', 'இந்தக் கடன்களைக் காட்டு'], wiMore: ['+{n} vs today', 'இன்றைவிட +{n}'],
+  hlT: ['Loan book health', 'கடன் புத்தக நிலை'], hlAge: ['By age of loan', 'கடன் வயது வாரியாக'], hlLtv: ['Owed vs gold value', 'நிலுவை / தங்க மதிப்பு'],
+  a0: ['Under 3 months', '3 மாதத்திற்குள்'], a1: ['3–6 months', '3–6 மாதம்'], a2: ['6–12 months', '6–12 மாதம்'], a3: ['Over 1 year', '1 வருடத்திற்கு மேல்'],
+  v0: ['Under 60%', '60%-க்குள்'], v1: ['60–75%', '60–75%'], v2: ['75–85%', '75–85%'], v3: ['85–100%', '85–100%'], v4: ['Over 100%', '100%-க்கு மேல்'], v5: ['No gold value', 'தங்க மதிப்பு இல்லை'],
+  loansN: ['{n} loans', '{n} கடன்கள்'], hlTap: ['Tap a row to see its bills.', 'பில்களைக் காண வரியைத் தட்டவும்.'],
+  hmT: ['Busy days', 'பரபரப்பான நாட்கள்'], hmL: ['Loans', 'கடன்'], hmP: ['Received', 'வரவு'], hmI: ['Income', 'வருமானம்'],
+  hmLess: ['Less', 'குறைவு'], hmMore: ['More', 'அதிகம்'], hmTot: ['Month total {a} · busiest {d}', 'மாத மொத்தம் {a} · அதிகம் {d}'],
+  hmPick: ['Tap a day to see its figures.', 'ஒரு நாளைத் தட்டி கணக்கைப் பாருங்கள்.'], redN: ['{n} redeemed', '{n} மீட்பு'],
+  cbT: ['Call back', 'மீண்டும் அழை'],
+  cbHint: ['Good customers who closed all their loans and have not come back for 6+ months.', 'எல்லா கடன்களையும் முடித்து 6 மாதத்திற்கு மேல் வராத நல்ல வாடிக்கையாளர்கள்.'],
+  cbRow: ['Last visit {d} · {n} · {a} borrowed', 'கடைசி வருகை {d} · {n} · மொத்தம் {a}'], loan1: ['1 loan', '1 கடன்'],
+  cbMsg: ['Vanakkam {n}! This is {s}. It has been a while — we would be happy to help you again with a gold loan at a good rate. Visit us any time.', 'வணக்கம் {n}! {s}-லிருந்து பேசுகிறோம். நீண்ட நாட்களாகிவிட்டது — நல்ல வட்டியில் நகைக் கடன் தேவைப்பட்டால் எப்போது வேண்டுமானாலும் வாருங்கள்.'],
+  cbHidden: ['{n} customers — names are hidden on this phone.', '{n} வாடிக்கையாளர்கள் — பெயர்கள் இந்த தொலைபேசியில் மறைக்கப்பட்டுள்ளன.'],
+  cbMore: ['Showing the top {n} by amount borrowed.', 'அதிக கடன் பெற்ற முதல் {n} பேர்.'],
+  wkT: ['Weekly summary picture', 'வார சுருக்கப் படம்'], wkMaking: ['Making the picture…', 'படம் தயாராகிறது…'], wkShare: ['Share', 'பகிர்'], wkSave: ['Save image', 'படத்தைச் சேமி'],
+  wkTitle: ['Weekly summary', 'வாராந்திர சுருக்கம்'], wkHint: ['Save it or forward it on WhatsApp.', 'சேமிக்கவும் அல்லது வாட்ஸ்அப்பில் அனுப்பவும்.'],
+  wkInc: ['Income — last 7 days', 'வருமானம் — கடந்த 7 நாட்கள்'], wkFoot: ['Made by the shop app · {t}', 'கடை மென்பொருள் · {t}'], wkRed: ['Redeemed', 'மீட்பு'], wkExp: ['Expenses', 'செலவு'],
+  seenT: ['Who opened this view', 'இந்தப் பக்கத்தைத் திறந்தவர்கள்'], seenYou: ['Your phone', 'உங்கள் தொலைபேசி'], seenOf: ['{n}’s phone', '{n} தொலைபேசி'],
+  seenLast: ['Last opened {t}', 'கடைசியாக {t}'], seenNever: ['Never opened', 'இதுவரை திறக்கவில்லை'], seenWait: ['Not checked yet', 'இன்னும் சரிபார்க்கவில்லை'],
+  seenHint: ['Times are recorded by the server each time a phone loads the figures. If you see a time you don’t recognise, or a phone is lost: on the shop computer open Owner Phone View → Lock out all phones.', 'ஒவ்வொரு முறை தொலைபேசி கணக்குகளை ஏற்றும்போதும் நேரம் பதிவாகும். தெரியாத நேரம் தெரிந்தால் அல்லது தொலைபேசி தொலைந்தால்: கடை கணினியில் Owner Phone View → Lock out all phones அழுத்தவும்.'],
+  seenOnly: ['This list is shown only on the owner’s phone.', 'இந்தப் பட்டியல் உரிமையாளர் தொலைபேசியில் மட்டும்.'],
   gt: ['Enter your passcode', 'உங்கள் கடவுச்சொல்லை உள்ளிடவும்'],
   gp: ["This page shows your shop's figures. It opens only with the passcode chosen in the shop app.", 'இந்தப் பக்கம் உங்கள் கடையின் கணக்குகளைக் காட்டும். கடை மென்பொருளில் அமைத்த கடவுச்சொல்லுடன் மட்டுமே திறக்கும்.'],
   open: ['Open', 'திற'], wrong: ['Wrong passcode.', 'தவறான கடவுச்சொல்.'], opening: ['Opening…', 'திறக்கிறது…'],
@@ -330,6 +425,7 @@ function countUp(root) {
     const step = now => { const k = Math.min(1, (now - t0) / dur), e = 1 - Math.pow(1 - k, 3); el.textContent = fmt(to * e); if (k < 1) requestAnimationFrame(step); else el.textContent = fmt(to); };
     requestAnimationFrame(step);
   });
+  root.querySelectorAll('.ring .fg').forEach(r => { const to = r.getAttribute('stroke-dashoffset'); r.style.transition = 'none'; r.style.strokeDashoffset = r.dataset.c; void r.getBoundingClientRect(); requestAnimationFrame(() => requestAnimationFrame(() => { r.style.transition = ''; r.style.strokeDashoffset = to; })); });
   root.querySelectorAll('.bar i').forEach(b => { const w = b.dataset.w; b.style.width = '0'; requestAnimationFrame(() => requestAnimationFrame(() => { b.style.width = w; })); });
 }
 function tile(i, c, icon, label, val, sub, onclick, barPct) {
@@ -425,7 +521,7 @@ function opened() {
   document.getElementById('acts').style.display = 'flex';
   document.getElementById('tabs').style.display = 'flex';
   load(false);
-  clearInterval(TIMER); TIMER = setInterval(() => { if (!document.hidden) load(false); }, 60000);
+  clearInterval(TIMER); TIMER = setInterval(() => { if (!document.hidden) load(false); }, 300000);  // v313: every 5 min — each load costs the server one of its 1,000 free daily writes
 }
 async function lock(forget) {
   SEC = null; DATA = null; clearInterval(TIMER);
@@ -538,9 +634,11 @@ function vHome(D) {
   const mPct = M.prev ? Math.round((M.inc - M.prev) / M.prev * 100) : null;
   const G = D.gold || {};
   let h = '<div class="sec">' + T('today') + '</div><div class="tiles">'
-    + tile(0, 'turmeric', 'ring', T('loansGiven'), cnt(Td.aL || 0, 's'), T('pledgesN', { n: Td.nL || 0 }))
-    + tile(1, 'leaf', 'cash', T('received'), cnt(Td.aP || 0, 's'), T('paymentsN', { n: Td.nP || 0, r: Td.nR || 0 }))
+    + tile(0, 'turmeric', 'ring', T('loansGiven'), cnt(Td.aL || 0, 's'), T('pledgesN', { n: Td.nL || 0 }) + cmpHtml(D, Td.aL || 0, 2))
+    + tile(1, 'leaf', 'cash', T('received'), cnt(Td.aP || 0, 's'), T('paymentsN', { n: Td.nP || 0, r: Td.nR || 0 }) + cmpHtml(D, Td.aP || 0, 7))
     + '</div>'
+    + (D.cash ? '<div class="sec">' + T('cashSec') + '</div>' + cashCard(D) : '')
+    + goalsCard(D)
     + '<div class="sec">' + T('loanBook') + '</div><div class="tiles">'
     + tile(2, 'peacock', 'book', T('outstanding'), cnt(F.prin || 0, 's'), T('pledgesN', { n: (F.n || 0).toLocaleString('en-IN') }))
     + tile(3, 'kumkum', 'alert', T('od90'), cnt(F.od || 0, 'n'), short(F.odPrin), D.pl ? "SUB.follow='od';go('follow')" : '', F.n ? (F.od || 0) / F.n * 100 : 0)
@@ -627,7 +725,8 @@ function vFollow(D) {
   const s = SUB.follow, list = s === 'today' ? L1 : s === 'week' ? L2 : L3;
   const sb = (k, label, n) => '<button class="' + (s === k ? 'on' : '') + '" onclick="SUB.follow=\'' + k + '\';draw()">' + label + (n != null ? ' (' + n + ')' : '') + '</button>';
   let h = '<div class="card"><div class="seg">' + sb('today', T('dueToday'), L1.length) + sb('week', T('dueWeek'), L2.length) + sb('od', T('overdue'), L3.length)
-    + (D.auc ? sb('auc', T('tAuc'), D.auc.n) : '') + (D.emi && D.emi.n ? sb('emi', T('tEmi'), (D.emi.missed || []).length + (D.emi.due || []).length) : '') + ((D.bday || []).length ? sb('bday', '🎂 ' + T('bdayT'), D.bday.length) : '') + '</div>';
+    + (D.auc ? sb('auc', T('tAuc'), D.auc.n) : '') + (D.emi && D.emi.n ? sb('emi', T('tEmi'), (D.emi.missed || []).length + (D.emi.due || []).length) : '') + ((D.bday || []).length ? sb('bday', '🎂 ' + T('bdayT'), D.bday.length) : '') + (D.cb ? sb('back', '📞 ' + T('cbT'), D.cbN || 0) : '') + '</div>';
+  if (s === 'back') return h + vBack(D) + '</div>';
   if (s === 'auc') return h + vAuc(D) + '</div>';
   if (s === 'emi') return h + vEmi(D) + '</div>';
   if (s === 'bday') return h + (D.bday || []).map(bdayRow).join('') + '</div>';
@@ -644,6 +743,7 @@ function vGold(D) {
   h += '<table><thead><tr><th>' + T('pur') + '</th><th class="r">' + T('wt') + '</th><th class="r">#</th><th class="r">' + T('value') + '</th></tr></thead><tbody>'
     + (G.byP || []).map(x => '<tr><td>' + esc(x[0]) + '</td><td class="r">' + x[1].toLocaleString('en-IN') + ' g</td><td class="r">' + x[3] + '</td><td class="r">' + (G.rate ? short(x[2]) : '—') + '</td></tr>').join('')
     + '<tr><td><b>' + T('total') + '</b></td><td class="r"><b>' + (G.wt || 0).toLocaleString('en-IN') + ' g</b></td><td></td><td class="r"><b>' + (G.rate ? short(G.val) : '—') + '</b></td></tr></tbody></table></div>';
+  h += wiCard(D);
   if (R && G.rate) {
     h += '<div class="card"><div class="h"><span>⚠️ ' + T('risky') + ' (' + (R.n || 0) + ')</span></div><div class="m" style="margin-bottom:6px">' + T('riskyHint', { p: R.th }) + '</div>';
     h += (R.list || []).length ? R.list.map(r => '<div class="row"><div class="tap" style="flex:1" onclick="openBill(\'' + U(r[0]) + '\')"><b style="font-weight:800">' + esc(r[0]) + '</b>' + (r[1] ? ' · ' + esc(r[1]) : '') + '<div class="m">' + T('owed') + ' ' + inr(r[3]) + ' · ' + T('gv') + ' ' + inr(r[4]) + '</div></div><span class="pct ' + (r[5] >= 100 ? 'p2' : 'p1') + '">' + r[5] + '%</span>' + callBtns(r[2], '') + '</div>').join('') : (D.lvl === 'figures' ? '' : '<div class="m">' + T('none') + '</div>');
@@ -669,7 +769,7 @@ function mBars(rows, keys, colors) {
   }).join('') + '<text x="' + (i * bw + bw / 2) + '" y="' + (H + 14) + '" font-size="9" text-anchor="middle" fill="#6B7C70">' + ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'][+r[0].slice(5) - 1] + '</text>').join('') + '</svg>';
 }
 function vReports(D) {
-  let h = collCard(D);
+  let h = collCard(D) + healthCard(D) + hmCard(D);
   const M = D.m12 || [];
   if (M.length) {
     h += '<div class="card"><div class="h">' + T('trend') + ' · ' + T('incomeM') + '</div>' + mBars(M, [1], ['#2E8B57']) + '<div class="legend"><span>' + short(M.reduce((s, r) => s + r[1], 0)) + ' · 12 m</span></div></div>';
@@ -685,7 +785,8 @@ function vReports(D) {
     h += '<div class="card"><div class="h">🏆 ' + T('topOut') + '</div>' + D.top.out.map((r, i) => tr(r, i, T('pledgesN', { n: r[3] }) + ' · ' + T('outstanding') + ' ' + inr(r[4]), 'out')).join('') + '</div>';
     if ((D.top.reg || []).length) h += '<div class="card"><div class="h">⭐ ' + T('topReg') + '</div>' + D.top.reg.map((r, i) => tr(r, i, T('paysN', { n: r[3] }) + ' · ' + inr(r[4]), 'reg')).join('') + '</div>';
   }
-  return h || '<div class="card"><div class="m">' + T('none') + '</div></div>';
+  h += '<div class="card"><div class="h">🖼 ' + T('wkT') + '</div><div class="m" style="margin-bottom:10px">' + T('wkHint') + '</div><button class="btn" style="margin:0;max-width:none;font-size:14px;padding:11px" onclick="weekPic()">' + T('wkT') + '</button></div>';
+  return h;
 }
 
 // ── Staff ──────────────────────────────────────────────────────────────────
@@ -699,6 +800,253 @@ function vStaff(D) {
   return h;
 }
 
+// ══ v313 · comparisons · goals · cash · what-if · health · heatmap · call back · weekly picture · opens ══
+function isoAdd(s, n) { const d = new Date(s + 'T00:00:00'); d.setDate(d.getDate() + n); return isoOf(d); }
+function isoOf(d) { const p = x => String(x).padStart(2, '0'); return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()); }
+function monthAgo(s) { const d = new Date(s + 'T00:00:00'), day = d.getDate(); d.setDate(1); d.setMonth(d.getMonth() - 1); const last = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate(); d.setDate(Math.min(day, last)); return isoOf(d); }
+function dmap(D) { if (!D.__dm) { D.__dm = {}; (D.d365 || []).forEach(r => { D.__dm[r[0]] = r; }); } return D.__dm; }
+function dval(D, s, k) { const r = dmap(D)[s]; return r ? (+r[k] || 0) : 0; }
+function wdShort(s) { return new Date(s + 'T00:00:00').toLocaleDateString(LANG === 'ta' ? 'ta-IN' : 'en-IN', { weekday: 'short' }); }
+function dShort(s) { return new Date(s + 'T00:00:00').toLocaleDateString(LANG === 'ta' ? 'ta-IN' : 'en-IN', { day: 'numeric', month: 'short' }); }
+// "▲ 12% vs last Mon" — today so far against the whole of that earlier day
+function cmpHtml(D, cur, k) {
+  if (!D.d365) return '';
+  const one = (s, key, lbl) => {
+    const prev = dval(D, s, k);
+    if (!prev && !cur) return '';
+    const txt = !prev ? '▲ ' + T(key, { d: lbl }) + ' (₹0)' : (cur >= prev ? '▲ ' : '▼ ') + Math.abs(Math.round((cur - prev) / prev * 100)) + '% ' + T(key, { d: lbl });
+    return '<span title="' + esc(dmy(s) + ': ' + inr(prev)) + '">' + esc(txt) + '</span>';
+  };
+  const lw = isoAdd(D.d, -7), lm = monthAgo(D.d);
+  const h = one(lw, 'vsWk', wdShort(lw)) + one(lm, 'vsMo', dShort(lm));
+  return h ? '<div class="cmp">' + h + '</div>' : '';
+}
+
+// ── monthly goals (kept on this phone) ──
+function goalsKey() { return 'ov_goals_' + (L ? L.tag : ''); }
+function goals() { try { return JSON.parse(localStorage.getItem(goalsKey()) || 'null') || {}; } catch (e) { return {}; } }
+function ringSvg(pct, color) {
+  const C = 2 * Math.PI * 31, p = Math.max(0, Math.min(1, pct));
+  return '<div class="ring"><svg viewBox="0 0 74 74" aria-hidden="true"><circle class="bg" cx="37" cy="37" r="31"/><circle class="fg" cx="37" cy="37" r="31" stroke="' + color + '" stroke-dasharray="' + C.toFixed(1) + '" stroke-dashoffset="' + (C * (1 - p)).toFixed(1) + '" data-c="' + C.toFixed(1) + '"/></svg><div class="pc">' + Math.round(pct * 100) + '%</div></div>';
+}
+function monthLoans(D) { const mk = D.d.slice(0, 7), M = (D.m12 || []).find(r => r[0] === mk); if (M) return M[2]; return (D.d365 || []).filter(r => r[0].slice(0, 7) === mk).reduce((s, r) => s + r[2], 0); }
+function goalsCard(D) {
+  const G = goals();
+  if (!(G.l > 0) && !(G.i > 0)) return '<div class="card"><div class="h"><span>🎯 ' + T('goalsT') + '</span></div><div class="m" style="margin-bottom:10px">' + T('goalNone') + '</div><button class="btn" style="margin:0;max-width:none;font-size:14px;padding:11px" onclick="openGoals()">' + T('goalSet') + '</button></div>';
+  const ml = monthLoans(D), mi = ((D.coll || {}).mo || {}).got || 0;
+  const t0 = new Date(D.d + 'T00:00:00'), dim = new Date(t0.getFullYear(), t0.getMonth() + 1, 0).getDate(), frac = t0.getDate() / dim;
+  const g = (v, tg, lbl, col) => tg > 0 ? '<div class="goal">' + ringSvg(v / tg, col) + '<div style="min-width:0"><div class="gl">' + lbl + '</div><div class="gv">' + short(v) + '</div><div class="gs">' + T('gOf', { t: short(tg) }) + '</div></div></div>' : '<div></div>';
+  const pace = (v, tg, lbl) => { if (!(tg > 0)) return ''; const want = tg * frac; return '<div>' + (v >= want ? '✅ ' + T('gAhead', { g: lbl }) : '⏳ ' + T('gBehind', { g: lbl, a: short(want - v) })) + '</div>'; };
+  return '<div class="card"><div class="h"><span>🎯 ' + T('goalsT') + '</span><button class="linkb" onclick="openGoals()">' + T('goalEdit') + '</button></div>'
+    + '<div class="goals">' + g(ml, G.l, T('gLoans'), '#E19A12') + g(mi, G.i, T('gInt'), '#2E8B57') + '</div>'
+    + '<div class="pace">' + pace(ml, G.l, T('gLoans')) + pace(mi, G.i, T('gInt')) + '</div></div>';
+}
+function openGoals() {
+  closeMenu(); const G = goals();
+  sheet('<div style="font-weight:800;font-size:16px">🎯 ' + T('goalsT') + '</div>'
+    + '<div class="ginp"><label for="g-l">' + T('goalL') + '</label><input id="g-l" type="number" inputmode="numeric" min="0" step="10000" value="' + (G.l || '') + '">'
+    + '<label for="g-i" style="margin-top:6px">' + T('goalI') + '</label><input id="g-i" type="number" inputmode="numeric" min="0" step="1000" value="' + (G.i || '') + '"></div>'
+    + '<div class="m">' + T('goalsHint') + '</div>'
+    + '<button class="btn" style="max-width:none" onclick="saveGoals()">' + T('gSave') + '</button><button class="btn" style="max-width:none;background:var(--soft);color:var(--ink);box-shadow:none" onclick="closeMenu()">' + T('close') + '</button>');
+}
+function saveGoals() {
+  const v = id => Math.max(0, Math.round(+(document.getElementById(id) || {}).value || 0));
+  try { localStorage.setItem(goalsKey(), JSON.stringify({ l: v('g-l'), i: v('g-i') })); } catch (e) {}
+  closeMenu(); ANIM = TAB === 'home'; draw();
+}
+
+function sinr(n) { return (n < 0 ? '−' : '') + inr(Math.abs(n)); }
+// ── cash position ──
+function cashCard(D) {
+  const C = D.cash; if (!C) return '';
+  const bt = (C.banks || []).reduce((s, b) => s + b[1], 0);
+  let h = '<div class="card"><div class="h">💰 ' + T('cashT') + '</div><div class="cashhero"><div><div class="l">' + T('cashHand') + '</div><div class="v' + (C.close != null && C.close < 0 ? ' red' : '') + '">' + (C.close != null ? (C.close < 0 ? '−' : '') + cnt(Math.abs(C.close), 'inr') : '—') + '</div></div>'
+    + ((C.banks || []).length ? '<div style="text-align:right"><div class="l">' + T('inBanks') + '</div><div class="v" style="font-size:20px">' + short(bt) + '</div></div>' : '') + '</div>';
+  if (C.close == null) h += '<div class="m" style="margin-top:6px">' + T('noDB') + '</div>';
+  else h += '<div class="io"><div><div class="l">' + T('cashIn') + '</div><div class="v">' + inr(C.cin) + '</div></div><div><div class="l">' + T('cashOut') + '</div><div class="v">' + inr(C.cout) + '</div></div></div>';
+  if ((C.banks || []).length) h += '<div style="margin-top:8px">' + C.banks.map(b => '<div class="row"><span>🏦 ' + esc(b[0]) + '</span><b' + (b[1] < 0 ? ' class="red"' : '') + '>' + sinr(b[1]) + '</b></div>').join('')
+    + (C.close != null ? '<div class="row"><b style="font-weight:700">' + T('cashTot') + '</b><b' + (C.close + bt < 0 ? ' class="red"' : '') + '>' + sinr(C.close + bt) + '</b></div>' : '') + '</div>';
+  if (C.count) {
+    const d = C.count[1] - C.count[2], st = Math.abs(d) < 1 ? '<span class="green">' + T('cMatch') + '</span>' : d < 0 ? '<span class="red">' + T('cShort', { a: inr(-d) }) + '</span>' : '<span class="amber">' + T('cExtra', { a: inr(d) }) + '</span>';
+    h += '<div class="pace">🪙 ' + T('lastCount', { d: dmy(C.count[0]), p: inr(C.count[1]), b: inr(C.count[2]) }) + ' — ' + st + '</div>';
+  }
+  return h + '</div>';
+}
+
+// ── what if gold falls ──
+let WI_D = 5;
+function wiCard(D) {
+  if (!D.wi || !(D.gold || {}).rate) return '';
+  return '<div class="card" id="wic">' + wiInner(D) + '</div>';
+}
+function wiInner(D) {
+  return '<div class="h"><span>📉 ' + T('wiT') + '</span></div><div class="m">' + T('wiHint', { p: (D.risk || {}).th || 85 }) + '</div>'
+    + '<div id="wihd">' + wiHead(D) + '</div>'
+    + '<input class="slider" type="range" min="0" max="' + (D.wi.length - 1) + '" step="1" value="' + WI_D + '" aria-label="' + esc(T('wiT')) + '" oninput="WI_D=+this.value;wiUpd()">'
+    + '<div class="wid"><span>0%</span><span>−10%</span><span>−20%</span><span>−30%</span></div>'
+    + '<div id="wiout">' + wiOut(D) + '</div>';
+}
+function wiHead(D) {
+  const d = WI_D, rate = (D.gold || {}).rate || 0;
+  return '<div class="wid" style="margin-top:12px;align-items:flex-end"><div><div class="wibig">' + (d ? '−' + d + '%' : '0%') + '</div><div class="m">' + (d ? T('wiRate', { r: inr(rate * (1 - d / 100)) }) : T('wiNow') + ' ' + inr(rate) + '/g') + '</div></div></div>';
+}
+function wiOut(D) {
+  const d = WI_D, r = D.wi[d] || [0, 0, 0], r0 = D.wi[0] || [0, 0, 0];
+  return '<div class="wiv"><div><div class="l">' + T('wiN') + '</div><div class="v">' + r[0] + '</div>' + (r[0] > r0[0] ? '<div class="m">' + T('wiMore', { n: r[0] - r0[0] }) + '</div>' : '') + '</div>'
+    + '<div><div class="l">' + T('wiOwed') + '</div><div class="v">' + short(r[1]) + '</div></div><div><div class="l">' + T('wiShort') + '</div><div class="v">' + short(r[2]) + '</div></div></div>'
+    + '<div class="m" style="margin-top:6px">' + T('wiShortH') + '</div>'
+    + (D.pl && r[0] ? '<button class="linkb" style="margin-top:10px" onclick="wiList()">' + T('wiList') + ' (' + r[0] + ')</button>' : '');
+}
+function wiUpd() { const a = document.getElementById('wihd'), b = document.getElementById('wiout'); if (a && b && DATA) { a.innerHTML = wiHead(DATA); b.innerHTML = wiOut(DATA); } }
+function wiList() {
+  const D = DATA, d = WI_D, th = (D.risk || {}).th || 85;
+  const L2 = (D.pl || []).filter(p => p[15] > 0).map(p => [p, Math.round(p[7] / (p[15] * (1 - d / 100)) * 100)]).filter(x => x[1] >= th).sort((a, b) => b[1] - a[1]);
+  listSheet('📉 ' + T('wiT') + ' · −' + d + '%', L2.map(x => billRow(x[0], '<span class="pct ' + (x[1] >= 100 ? 'p2' : 'p1') + '">' + x[1] + '%</span>')));
+}
+
+// ── loan book health ──
+function healthCard(D) {
+  const H = D.hl; if (!H) return '';
+  const bars = (rows, keys, cols, kind) => { const tot = rows.reduce((s, r) => s + r[1], 0) || 1; return rows.map((r, i) => (i === 5 && !r[0]) ? '' : '<div class="hb' + (D.pl && r[0] ? ' tap' : '') + '"' + (D.pl && r[0] ? ' onclick="hbList(\'' + kind + '\',' + i + ')"' : '') + '><span class="t">' + T(keys[i]) + ' <span class="m">· ' + (r[0] === 1 ? T('loan1') : T('loansN', { n: r[0] })) + '</span></span><span class="a">' + short(r[1]) + '</span><div class="bar2"><i style="width:' + Math.max(r[1] ? 2 : 0, r[1] / tot * 100).toFixed(1) + '%;background:' + cols[i] + '"></i></div></div>').join(''); };
+  return '<div class="card"><div class="h">🩺 ' + T('hlT') + '</div>'
+    + '<div class="m" style="font-weight:700;margin:2px 0 2px">' + T('hlAge') + '</div>' + bars(H.age, ['a0', 'a1', 'a2', 'a3'], ['#2E8B57', '#E19A12', '#B83C78', '#9E1B42'], 'a')
+    + ((D.gold || {}).rate ? '<div class="m" style="font-weight:700;margin:12px 0 2px">' + T('hlLtv') + '</div>' + bars(H.ltv, ['v0', 'v1', 'v2', 'v3', 'v4', 'v5'], ['#2E8B57', '#3E98A4', '#E19A12', '#B83C78', '#9E1B42', '#8A9BA0'], 'v') : '')
+    + (D.pl ? '<div class="m" style="margin-top:6px">' + T('hlTap') + '</div>' : '') + '</div>';
+}
+function hbList(kind, i) {
+  const D = DATA, P = D.pl || [];
+  const ab = p => p[11] < 90 ? 0 : p[11] < 180 ? 1 : p[11] < 365 ? 2 : 3;
+  const vb = p => { if (!(p[15] > 0)) return 5; const x = p[7] / p[15] * 100; return x < 60 ? 0 : x < 75 ? 1 : x < 85 ? 2 : x < 100 ? 3 : 4; };
+  const L2 = P.filter(p => (kind === 'a' ? ab(p) : vb(p)) === i).sort((a, b) => kind === 'a' ? b[11] - a[11] : (b[7] / (b[15] || 1)) - (a[7] / (a[15] || 1)));
+  listSheet('🩺 ' + T(kind === 'a' ? 'a' + i : 'v' + i), L2.map(p => billRow(p, kind === 'v' && p[15] > 0 ? '<span class="pct ' + (p[7] >= p[15] ? 'p2' : 'p1') + '">' + Math.round(p[7] / p[15] * 100) + '%</span>' : '')));
+}
+function billRow(p, extra) {
+  return '<div class="row tap" onclick="closeMenu();openBill(\'' + U(p[0]) + '\')"><div><b style="font-weight:800">' + esc(p[0]) + '</b>' + (p[1] ? ' · ' + esc(p[1]) : '') + '<div class="m">' + dmy(p[3]) + ' · ' + T('days', { n: p[11] }) + ' · ' + T('owed') + ' ' + inr(p[7]) + '</div></div>' + (extra || '<b>' + inr(p[7]) + '</b>') + '</div>';
+}
+function listSheet(title, rows) {
+  closeMenu();
+  sheet('<div style="font-weight:800;font-size:16px;margin-bottom:4px">' + title + ' <span class="m">(' + rows.length + ')</span></div>' + (rows.length ? rows.slice(0, 200).join('') : '<div class="m">' + T('none') + '</div>')
+    + '<button class="btn" style="max-width:none" onclick="closeMenu()">' + T('close') + '</button>');
+}
+function sheet(inner) {
+  closeMenu();
+  const s = document.createElement('div'); s.className = 'sheet'; s.id = 'sheet';
+  s.innerHTML = '<div role="dialog" aria-modal="true">' + inner + '</div>';
+  s.addEventListener('click', e => { if (e.target === s) closeMenu(); });
+  document.body.appendChild(s);
+  return s;
+}
+
+// ── busy-days calendar ──
+const HM = { m: '', k: 2, sel: '' };
+function hmCard(D) { if (!(D.d365 || []).length) return ''; return '<div class="card" id="hmc">' + hmInner(D) + '</div>'; }
+function hmInner(D) {
+  const cur = D.d.slice(0, 7), first = (D.d365[0] || [D.d])[0].slice(0, 7);
+  if (!HM.m || HM.m > cur || HM.m < first) HM.m = cur;
+  const y = +HM.m.slice(0, 4), mo = +HM.m.slice(5) - 1, dim = new Date(y, mo + 1, 0).getDate(), off = (new Date(y, mo, 1).getDay() + 6) % 7;
+  const k = HM.k, days = [];
+  for (let i = 1; i <= dim; i++) { const s = HM.m + '-' + String(i).padStart(2, '0'); days.push([s, dval(D, s, k)]); }
+  const max = Math.max(1, ...days.map(x => x[1])), tot = days.reduce((s, x) => s + x[1], 0), top = days.slice().sort((a, b) => b[1] - a[1])[0];
+  const seg = (kk, lbl) => '<button class="' + (k === kk ? 'on' : '') + '" onclick="HM.k=' + kk + ';hmUpd()">' + lbl + '</button>';
+  const wd = []; for (let i = 0; i < 7; i++) { const d = new Date(2024, 0, 1 + i); wd.push(d.toLocaleDateString(LANG === 'ta' ? 'ta-IN' : 'en-IN', { weekday: 'narrow' })); }
+  let g = wd.map(x => '<div class="wd">' + esc(x) + '</div>').join('') + '<div class="em"></div>'.repeat(off);
+  days.forEach(([s, v], i) => {
+    const fut = s > D.d, lv = !v ? 0 : Math.min(4, Math.ceil(v / max * 4));
+    g += '<button class="' + (lv ? 'l' + lv : '') + (fut ? ' fut' : '') + (HM.sel === s ? ' sel' : '') + '"' + (fut ? ' disabled' : ' onclick="HM.sel=\'' + s + '\';hmUpd()"') + ' aria-label="' + esc(dmy(s) + ': ' + inr(v)) + '">' + (i + 1) + '</button>';
+  });
+  const prevM = (() => { const d = new Date(y, mo - 1, 1); return isoOf(d).slice(0, 7); })(), nextM = (() => { const d = new Date(y, mo + 1, 1); return isoOf(d).slice(0, 7); })();
+  let sel = '<div class="m" style="margin-top:8px">' + T('hmPick') + '</div>';
+  if (HM.sel && HM.sel.slice(0, 7) === HM.m) {
+    const r = dmap(D)[HM.sel] || [HM.sel, 0, 0, 0, 0, 0, 0, 0, 0];
+    sel = '<div class="hmday"><b>' + dmy(HM.sel) + ' · ' + wdShort(HM.sel) + '</b><div class="kv" style="margin-top:6px"><span>' + T('loansGiven') + '</span><b>' + inr(r[2]) + ' (' + (r[3] || 0) + ')</b><span>' + T('received') + '</span><b>' + inr(r[7] || 0) + ' (' + (r[8] || 0) + ')</b><span>' + T('hmI') + '</span><b>' + inr(r[1]) + '</b><span>' + T('wkRed') + '</span><b>' + (r[5] || 0) + '</b></div></div>';
+  }
+  return '<div class="h"><span>🗓 ' + T('hmT') + '</span></div><div class="seg">' + seg(2, T('hmL')) + seg(7, T('hmP')) + seg(1, T('hmI')) + '</div>'
+    + '<div class="hmnav"><button onclick="HM.m=\'' + prevM + '\';HM.sel=\'\';hmUpd()" ' + (prevM < first ? 'disabled' : '') + ' aria-label="Previous month">‹</button><b>' + monthName(HM.m) + '</b><button onclick="HM.m=\'' + nextM + '\';HM.sel=\'\';hmUpd()" ' + (nextM > cur ? 'disabled' : '') + ' aria-label="Next month">›</button></div>'
+    + '<div class="hm">' + g + '</div>'
+    + '<div class="hmk"><span>' + T('hmLess') + '</span><i></i><i style="background:#CDE6E8"></i><i style="background:#8CC6CC"></i><i style="background:#3E98A4"></i><i style="background:#0F4C5C"></i><span>' + T('hmMore') + '</span></div>'
+    + (tot ? '<div class="m" style="margin-top:4px">' + T('hmTot', { a: short(tot), d: dmy(top[0]) + ' (' + short(top[1]) + ')' }) + '</div>' : '') + sel;
+}
+function hmUpd() { const c = document.getElementById('hmc'); if (c && DATA) c.innerHTML = hmInner(DATA); }
+
+// ── customers to call back ──
+function vBack(D) {
+  const C = D.cb || [];
+  let h = '<div class="m" style="margin:2px 0 8px">' + T('cbHint') + '</div>';
+  if (!C.length) return h + '<div class="m">' + (D.cbN ? T('cbHidden', { n: D.cbN }) : T('none')) + '</div>';
+  h += C.map(c => '<div class="row"><div style="flex:1;min-width:0"><b style="font-weight:800">' + esc(c[0]) + '</b><div class="m">' + T('cbRow', { d: dmy(c[3]), n: c[4] === 1 ? T('loan1') : T('loansN', { n: c[4] }), a: short(c[5]) }) + '</div></div>' + callBtns(c[1], T('cbMsg', { n: c[0], s: D.sn || '' })) + '</div>').join('');
+  if (D.cbN > C.length) h += '<div class="m" style="margin-top:6px">' + T('cbMore', { n: C.length }) + '</div>';
+  return h;
+}
+
+// ── weekly summary picture ──
+async function weekPic() {
+  closeMenu(); const D = DATA; if (!D) return;
+  const box = sheet('<div style="font-weight:800;font-size:16px">🖼 ' + T('wkT') + '</div><div class="m" id="wkm" style="margin:8px 0">' + T('wkMaking') + '</div><div id="wkb"></div><button class="btn" style="max-width:none;background:var(--soft);color:var(--ink);box-shadow:none" onclick="closeMenu()">' + T('close') + '</button>');
+  try { await document.fonts.load('700 40px "Hind Madurai"'); await document.fonts.load('500 30px "Hind Madurai"'); } catch (e) {}
+  const days = []; for (let i = 6; i >= 0; i--) days.push(isoAdd(D.d, -i));
+  const sum = k => days.reduce((s, d) => s + dval(D, d, k), 0);
+  const F = D.pf || {}, Wd = 1080, Hd = 1350, c = document.createElement('canvas'); c.width = Wd; c.height = Hd;
+  const x = c.getContext('2d'), FF = '"Hind Madurai","Noto Sans Tamil","Nirmala UI",sans-serif';
+  const rr = (X, Y, w, h, r) => { x.beginPath(); x.moveTo(X + r, Y); x.arcTo(X + w, Y, X + w, Y + h, r); x.arcTo(X + w, Y + h, X, Y + h, r); x.arcTo(X, Y + h, X, Y, r); x.arcTo(X, Y, X + w, Y, r); x.closePath(); };
+  const fit = (t, size, wt, maxW) => { let s = size; do { x.font = wt + ' ' + s + 'px ' + FF; s -= 2; } while (x.measureText(t).width > maxW && s > 14); };
+  x.fillStyle = '#EDF3F2'; x.fillRect(0, 0, Wd, Hd);
+  let g = x.createLinearGradient(0, 0, Wd, 330); g.addColorStop(0, '#0A3340'); g.addColorStop(.55, '#0F4C5C'); g.addColorStop(1, '#123E4A');
+  x.fillStyle = g; rr(0, -40, Wd, 370, 48); x.fill();
+  x.fillStyle = '#7E1638'; x.fillRect(0, 318, Wd, 14);
+  x.fillStyle = '#E7BE5A'; for (let X = 0; X < Wd; X += 20) { x.beginPath(); x.moveTo(X, 320); x.lineTo(X + 10, 330); x.lineTo(X + 20, 320); x.closePath(); x.fill(); }
+  x.fillStyle = '#E7BE5A'; rr(70, 70, 88, 88, 26); x.fill();
+  x.strokeStyle = '#5A3A06'; x.lineWidth = 5; x.lineJoin = 'round'; x.beginPath(); x.moveTo(92, 102); x.lineTo(136, 102); x.lineTo(148, 118); x.lineTo(114, 146); x.lineTo(80, 118); x.closePath(); x.stroke();
+  x.fillStyle = '#FFF6DD'; fit(D.sn || 'Shop', 52, '700', 780); x.fillText(D.sn || 'Shop', 186, 116);
+  x.fillStyle = '#BFE0DF'; x.font = '500 32px ' + FF; x.fillText(T('wkTitle') + ' · ' + dmy(days[0]) + ' – ' + dmy(days[6]), 186, 162);
+  const stats = [[T('loansGiven'), short(sum(2)), T('pledgesN', { n: sum(3) }), '#E19A12'], [T('received'), short(sum(7)), T('paymentsN', { n: sum(8), r: sum(5) }).replace(/ · .*/, ''), '#2E8B57'],
+    [T('hmI'), short(sum(1)), T('wkExp') + ' ' + short(sum(6)), '#3B4C9B'], [T('wkRed'), String(sum(5)), short(sum(4)), '#B83C78'],
+    [T('outstanding'), short(F.prin), T('pledgesN', { n: F.n || 0 }), '#0F4C5C'], [T('od90'), String(F.od || 0), short(F.odPrin), '#9E1B42']];
+  stats.forEach((s, i) => {
+    const X = 60 + (i % 2) * 490, Y = 380 + Math.floor(i / 2) * 210;
+    x.fillStyle = '#FFFFFF'; rr(X, Y, 470, 186, 30); x.fill();
+    x.fillStyle = s[3]; rr(X, Y, 14, 186, 7); x.fill();
+    x.fillStyle = '#5E7378'; fit(s[0], 30, '600', 410); x.fillText(s[0], X + 40, Y + 54);
+    x.fillStyle = '#13242A'; fit(s[1], 64, '700', 410); x.fillText(s[1], X + 40, Y + 124);
+    x.fillStyle = '#5E7378'; fit(s[2], 26, '500', 410); x.fillText(s[2], X + 40, Y + 164);
+  });
+  const CY = 1020; x.fillStyle = '#FFFFFF'; rr(60, CY, 960, 250, 30); x.fill();
+  x.fillStyle = '#13242A'; x.font = '700 30px ' + FF; x.fillText(T('wkInc'), 96, CY + 52);
+  const vals = days.map(d => dval(D, d, 1)), mx = Math.max(1, ...vals), bw = 880 / 7;
+  vals.forEach((v, i) => {
+    const h = Math.round(v / mx * 120), X = 96 + i * bw + 14, w = bw - 28;
+    x.fillStyle = i === 6 ? '#C99A2E' : '#2E8B57'; rr(X, CY + 196 - h, w, Math.max(h, 4), 8); x.fill();
+    x.fillStyle = '#5E7378'; x.font = '500 22px ' + FF; x.textAlign = 'center'; x.fillText(wdShort(days[i]), X + w / 2, CY + 230);
+    if (v) { x.fillStyle = '#13242A'; x.font = '600 20px ' + FF; x.fillText(v >= 1000 ? (v / 1000).toFixed(v >= 10000 ? 0 : 1) + 'k' : String(v), X + w / 2, CY + 186 - h); }
+    x.textAlign = 'left';
+  });
+  x.fillStyle = '#5E7378'; x.font = '500 24px ' + FF; x.textAlign = 'center';
+  x.fillText(T('wkFoot', { t: new Date().toLocaleString(LANG === 'ta' ? 'ta-IN' : 'en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) }), Wd / 2, Hd - 36); x.textAlign = 'left';
+  const url = c.toDataURL('image/png');
+  const b = box.querySelector('#wkb'), m = box.querySelector('#wkm'); if (!b) return;
+  m.textContent = T('wkHint');
+  b.innerHTML = '<img class="wkimg" alt="' + esc(T('wkT')) + '" src="' + url + '"><div style="display:flex;gap:8px;margin-top:10px"><button class="btn" style="margin:0;flex:1;max-width:none;font-size:14px" id="wksh">📤 ' + T('wkShare') + '</button><a class="btn" style="margin:0;flex:1;max-width:none;font-size:14px;text-align:center;text-decoration:none" download="' + esc('week-' + D.d + '.png') + '" href="' + url + '">⬇ ' + T('wkSave') + '</a></div>';
+  const fn = 'week-' + D.d + '.png';
+  c.toBlob(bl => {
+    const f = bl && window.File ? new File([bl], fn, { type: 'image/png' }) : null, btn = b.querySelector('#wksh');
+    if (!f || !navigator.canShare || !navigator.canShare({ files: [f] })) { if (btn) btn.style.display = 'none'; return; }
+    btn.onclick = () => navigator.share({ files: [f], title: T('wkTitle') }).catch(() => {});
+  }, 'image/png');
+}
+
+// ── who opened this view ──
+function seenSheet() {
+  closeMenu(); const S = (DATA || {}).seen;
+  const sess = rec => { const out = []; (rec || []).slice().sort((a, b) => b - a).forEach(t => { if (!out.length || out[out.length - 1] - t > 20 * 60000) out.push(t); else out[out.length - 1] = t; }); return out; };
+  const tm = t => new Date(t).toLocaleString(LANG === 'ta' ? 'ta-IN' : 'en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
+  const rows = !S ? '<div class="m">' + T('seenOnly') + '</div>' : S.map(r => {
+    const nm = r[0] ? T('seenOf', { n: r[0] }) : T('seenYou');
+    const st = !r[5] ? '<span class="m">' + T('seenWait') + '</span>' : !r[2] ? '<span class="no">' + T('seenNever') + '</span>' : '<span class="ok">● ' + T('seenLast', { t: ago(r[2]) }) + '</span>';
+    const ss = sess(r[4]).slice(0, 6).map(tm).join(' · ');
+    return '<div class="seenr"><b style="font-weight:800">' + esc(nm) + '</b> ' + st + (ss ? '<div class="m" style="margin-top:3px">' + ss + '</div>' : '') + '</div>';
+  }).join('');
+  sheet('<div style="font-weight:800;font-size:16px;margin-bottom:4px">👁 ' + T('seenT') + '</div>' + rows + '<div class="pace" style="margin-top:12px">🔒 ' + T('seenHint') + '</div><button class="btn" style="max-width:none" onclick="closeMenu()">' + T('close') + '</button>');
+}
+
 // ── menu: language, stay unlocked, share, PDF ──────────────────────────────
 function menu() {
   const m = stayMins();
@@ -708,6 +1056,9 @@ function menu() {
     + '<div class="opt tap" onclick="setLang(LANG===\'en\'?\'ta\':\'en\');closeMenu()">🌐 ' + T('lang') + '</div>'
     + '<div class="opt tap" onclick="shareToday()">📤 ' + T('share') + '</div>'
     + '<div class="opt tap" onclick="closeMenu();setTimeout(()=>window.print(),200)">🖨 ' + T('pdf') + '</div>'
+    + '<div class="opt tap" onclick="weekPic()">🖼 ' + T('wkT') + '</div>'
+    + '<div class="opt tap" onclick="openGoals()">🎯 ' + T('goalsT') + '</div>'
+    + (DATA && DATA.seen ? '<div class="opt tap" onclick="seenSheet()">👁 ' + T('seenT') + '</div>' : '')
     + '<div style="font-weight:800;margin:12px 0 2px">🔓 ' + T('stay') + '</div>' + o(0, 's0') + o(5, 's5') + o(60, 's60') + o(240, 's240')
     + '<div style="font-weight:800;margin:12px 0 2px">🌓 ' + T('theme') + '</div>' + ['auto', 'light', 'dark'].map(v => '<label class="opt"><input type="radio" name="theme" ' + (themePref() === v ? 'checked' : '') + ' onchange="setTheme(\'' + v + '\')"> ' + T('th' + v.charAt(0).toUpperCase() + v.slice(1)) + '</label>').join('')
     + '<div style="font-weight:800;margin:12px 0 2px">👆 ' + T('bio') + '</div>' + (bioRec() ? '<div class="opt">' + T('bioIsOn') + ' <button style="margin-left:auto;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:8px;padding:5px 10px;font:inherit" onclick="bioOff();closeMenu()">' + T('bioDisable') + '</button></div>' : '<div class="opt tap" onclick="closeMenu();bioEnable()">' + T('bioEnable') + '</div>')
