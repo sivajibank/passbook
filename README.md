@@ -251,6 +251,17 @@
     padding:var(--s3);font-size:12.5px;color:#7A5200;line-height:1.55;margin-bottom:var(--s3);
     animation:cardIn .45s var(--ease-out) .05s both;}
 
+  /* v17 · shop notice, family owner chip */
+  .pbnote{display:flex;gap:var(--s3);align-items:flex-start;background:linear-gradient(135deg,#E8F4F8,#F5FBFD);
+    border:1px solid #B9DCE8;border-left:4px solid var(--peacock);border-radius:var(--r2);
+    padding:var(--s3) var(--s4);font-size:13px;color:#0E3B4C;line-height:1.55;margin-bottom:var(--s3);
+    animation:cardIn .45s var(--ease-out) .05s both;}
+  .pbnote .ni{font-size:18px;line-height:1.2}
+  .pbnote b{display:block;font-size:11px;color:var(--peacock);letter-spacing:.2px;margin-bottom:1px}
+  .pcard .owc{display:inline-flex;align-items:center;gap:4px;margin:0 0 4px 6px;font-size:11px;font-weight:700;
+    color:#5B3A8C;background:#F2ECFA;border:1px solid #DCCDF0;border-radius:999px;padding:1px 8px;vertical-align:1px}
+  .famline{font-size:11.5px;font-weight:700;color:var(--zari);margin-top:2px}
+
   /* ── Settle-everything band ────────────────────────────────────────────── */
   .settle{display:grid;grid-template-columns:1fr auto;align-items:center;gap:var(--s4);
     background:var(--card);border-radius:var(--r3);padding:var(--s4);margin-bottom:var(--s3);
@@ -655,6 +666,9 @@ const I18N = {
   stmtCust:{en:'Customer', ta:'வாடிக்கையாளர்'},
   stmtFoot:{en:'Computer-generated statement · valid without signature. Dues are calculated to the date shown above and may change. Please verify at the shop before settlement.',
             ta:'கணினி மூலம் உருவாக்கப்பட்டது · கையொப்பம் தேவையில்லை. மேலே உள்ள தேதிக்கான கணக்கு. செலுத்தும் முன் கடையில் உறுதி செய்யவும்.'},
+  ntK:{en:'Notice from the shop', ta:'கடையின் அறிவிப்பு'},
+  famK:{en:'Family passbook', ta:'குடும்ப பாஸ்புக்'},
+  goneT:{en:'This card has no active pledges at the shop now. If you have pledged again, please ask the shop for a new link.', ta:'இந்த கார்டில் இப்போது செயலில் உள்ள அடகு எதுவும் இல்லை. மீண்டும் அடகு வைத்திருந்தால், கடையிடம் புதிய இணைப்பைக் கேளுங்கள்.'},
   stale:{en:'⚠️ This passbook snapshot is #D days old. Recent payments or renewals may not be shown — ask the shop for a fresh link or card.', ta:'⚠️ இந்த பாஸ்புக் தரவு #D நாட்கள் பழையது. சமீபத்திய கட்டணங்கள் காட்டப்படாமல் இருக்கலாம் — புதிய இணைப்பு/கார்டு கேட்கவும்.'},
   pledged:{en:'Pledged on', ta:'அடகு தேதி'}, duedate:{en:'Due date', ta:'கெடு தேதி'},
   lastpay:{en:'Last payment', ta:'கடைசி கட்டணம்'}, rate:{en:'Interest rate', ta:'வட்டி விகிதம்'},
@@ -967,10 +981,25 @@ async function decEnc(pin) {
     const obj = JSON.parse(LZString.decompressFromUint8Array(pt));
     if (!obj || !obj.p || !Array.isArray(obj.p.p)) return false;
     P = obj.p;
-    if (obj.lv && obj.lv.u) LIVE = { url: obj.lv.u, id: obj.lv.id, key: obj.lv.k };
+    if (obj.lv && obj.lv.u && !window._pbNoLive) LIVE = { url: obj.lv.u, id: obj.lv.id, key: obj.lv.k };
     return true;
   } catch (e) { return false; }
 }
+// v17 · "Preview as the customer" in the shop app. The app frames this page
+// and hands over the PIN; the live record is not fetched, so a preview never
+// counts as the customer opening it.
+window.addEventListener('message', function (ev) {
+  try {
+    if (window.parent === window || ev.source !== window.parent) return;
+    const d = ev.data || {};
+    if (d.type !== 'sb-pb-preview' || !/^\d{4,8}$/.test(String(d.pin || ''))) return;
+    if (d.nolive) { LIVE = null; window._pbNoLive = 1; }
+    window._pbPreview = 1;
+    const el = document.getElementById('pin'); if (!el) return;
+    el.value = String(d.pin);
+    unlock();
+  } catch (e) {}
+});
 (function boot(){
   try {
     let frag = location.hash.replace(/^#/, '');
@@ -1207,7 +1236,13 @@ function pbRefreshLive() {
   pbLiveBanner('busy', 'Checking for updates…');
   fetch(LIVE.url.replace(/\/+$/, '') + '/p/' + encodeURIComponent(LIVE.id) + '?t=' + Date.now(),
         { cache: 'no-store' })
-    .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); })
+    .then(r => {
+      if (r.status === 404) {   // v17 · removed by the shop's clean-up, or cancelled
+        P.p = []; P._gone = 1; renderBook();
+        pbLiveBanner('stale', LANG === 'ta' ? 'செயலில் உள்ள அடகு இல்லை' : 'No active pledges on this card');
+        throw new Error('gone');
+      }
+      if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); })
     .then(blob => pbDecrypt(LIVE.key, blob.trim()))
     .then(fresh => {
       // The record carries both books; this viewer wants the pledge half.
@@ -1224,7 +1259,8 @@ function pbRefreshLive() {
               : 'just now') +
         ' \u00B7 ' + P.p.length + ' active pledge' + (P.p.length === 1 ? '' : 's'));
     })
-    .catch(() => {
+    .catch((e) => {
+      if (e && e.message === 'gone') return;
       pbLiveBanner('stale', 'Offline \u2014 showing the details saved on this card' +
         (P.asOf ? ' (' + P.asOf + ')' : ''));
     });
@@ -1292,7 +1328,7 @@ function renderBook() {
     </div>
     <div class="sumhero">
       <div class="sh-id"><div class="av">${esc(initials)}</div>
-        <div><div class="nm">${esc(P.cn)}</div><div class="asof">${T('asof')}: ${fmtD(asOf)}${P.gen && P.gen !== asOf ? ' · ' + T('snap') + ' ' + fmtD(P.gen) : ''}</div></div></div>
+        <div><div class="nm">${esc(P.cn)}</div>${P.fam ? `<div class="famline">👪 ${T('famK')} · ${esc(P.fam)}</div>` : ''}<div class="asof">${T('asof')}: ${fmtD(asOf)}${P.gen && P.gen !== asOf ? ' · ' + T('snap') + ' ' + fmtD(P.gen) : ''}</div></div></div>
       <div class="sh-lab">${T('totnow')}</div>
       <div class="sh-big num" id="kpi-due">₹0</div>
       <div class="split" aria-hidden="true"><i class="sp-p" id="sp-p" style="width:0"></i><i class="sp-i" id="sp-i" style="width:0"></i></div>
@@ -1318,7 +1354,13 @@ function renderBook() {
         <div class="kval">${nextDd ? fmtD(nextDd).slice(0,5) : '—'}</div><div class="ksub">${nextDd ? T('inDays').replace('#D', daysBetween(asOf, nextDd)) : T('noneDue')}</div></div>`}
     </div>`;
 
-  if (genAge > 7) h += `<div class="stale">${T('stale').replace('#D', genAge)}</div>`;
+  if (P.nt && (P.nt.t || P.nt.ta)) {
+    const nt = P.nt, ok = (!nt.f || nt.f <= asOf) && (!nt.u || nt.u >= asOf);
+    const txt = (LANG === 'ta' ? (nt.ta || nt.t) : (nt.t || nt.ta)) || '';
+    if (ok && txt) h += `<div class="pbnote" role="note"><span class="ni">📢</span><div><b>${T('ntK')}</b>${esc(txt)}</div></div>`;
+  }
+  if (P._gone) h += `<div class="stale">${T('goneT')}</div>`;
+  if (genAge > 7 && !P._gone) h += `<div class="stale">${T('stale').replace('#D', genAge)}</div>`;
 
   // "Settle everything" only makes sense with more than one open pledge —
   // with a single pledge its own card already shows the same number.
@@ -1380,7 +1422,7 @@ function renderBook() {
     h += `
     <div class="pcard${isOver ? ' is-over' : ''}" data-rd="${(i*0.07).toFixed(2)}">
       <div class="top">
-        <div><div class="bill">${T('billK')} ${esc(it.b)}</div><div class="item">${esc(it.it)||'—'}</div></div>
+        <div><div class="bill">${T('billK')} ${esc(it.b)}</div>${it.ow ? `<span class="owc">👤 ${esc(it.ow)}</span>` : ''}<div class="item">${esc(it.it)||'—'}</div></div>
         ${isOver ? `<span class="badge due">⏰ ${T('overdue').replace('#D', overdueDays)}</span>` : `<span class="badge ok">✓ ${T('ontrack')}</span>`}
       </div>
       <div class="kv">
