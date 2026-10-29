@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html lang="ta">
 <head>
 <meta charset="UTF-8">
@@ -17,7 +18,7 @@
 <meta property="og:site_name" content="Sivaji Bank">
 <meta property="og:title" content="Sivaji Bank — Pledge Passbook">
 <meta property="og:description" content="உங்கள் அடகு, வட்டி, நிலுவை விவரங்கள் · Your pledges, interest and dues">
-<meta property="og:image" content="https://sivajibank.github.io/p/card.jpg">
+<meta property="og:image" content="https://sivajibank.github.io/passbook/p/card.jpg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
