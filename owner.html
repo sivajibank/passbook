@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -357,6 +356,10 @@ const W = {
   tBanks: ['Banks', 'வங்கி'], banksT: ['Gold pledged at banks', 'வங்கியில் அடகு வைத்த தங்கம்'], owedBank: ['Owed to banks', 'வங்கிக்கு நிலுவை'], intBank: ['Interest due', 'வட்டி நிலுவை'],
   bOverdue: ['{n} overdue', '{n} கெடு கடந்தது'], bSoon: ['{n} due within 15 days', '{n} 15 நாளில் கெடு'], dueOn: ['Due {d}', 'கெடு {d}'], daysLeft: ['{n} days left', '{n} நாள் உள்ளது'], daysOver: ['{n} days overdue', '{n} நாள் கடந்தது'], shopBill: ['Shop bill', 'கடை பில்'], receipt: ['Receipt', 'ரசீது'],
   emiT: ['EMI today', 'இன்றைய EMI'], emiDue: ['Due today', 'இன்று கெடு'], emiPaid: ['Received today', 'இன்று வரவு'], emiMissed: ['Missed', 'தவறியது'], emiInst: ['instalment {m}', 'தவணை {m}'], emiN: ['{n} instalments missed since {d}', '{d} முதல் {n} தவணை தவறியது'], tEmi: ['EMI', 'EMI'],
+  wnT: ['🚶 Walk-ins today', '🚶 இன்று வந்தவர்கள்'], wnCust: ['Customers', 'வாடிக்கையாளர்கள்'], wnRet: ['{n} returning · {m} new', '{n} பழையவர் · {m} புதியவர்'],
+  wnUnk: ['Unknown faces', 'தெரியாத முகங்கள்'], wnBl: ['Blacklist alerts', 'தடை பட்டியல் எச்சரிக்கை'], wnCol: ['Collectors', 'பெற்றுச் செல்பவர்'], wnScans: ['{n} face scans', '{n} முக ஸ்கேன்'],
+  wnBusy: ['Busiest hour {h}', 'அதிக கூட்டம் {h}'], wnNone: ['No walk-ins recorded yet today', 'இன்று இதுவரை யாரும் பதிவாகவில்லை'], wnLast: ['Latest', 'சமீபத்தியது'],
+  wnK_face: ['face', 'முகம்'], wnK_confirmed: ['confirmed', 'உறுதி'], wnK_picked: ['picked', 'தேர்வு'], wnK_manual: ['by hand', 'கையால்'], wnK_collector: ['collector', 'பெற்றுச் செல்பவர்'], wnK_unknown: ['unknown face', 'தெரியாத முகம்'], wnK_blacklist: ['blacklist', 'தடை பட்டியல்'],
   bdayT: ['Birthdays', 'பிறந்தநாள்'], bdayToday: ['Today', 'இன்று'], bdayIn: ['in {n} days', '{n} நாளில்'], bdayAge: ['turns {n}', '{n} வயது'],
   greet: ['Happy birthday, {n}! Warm wishes from all of us at {s}. Have a wonderful year ahead.', 'இனிய பிறந்தநாள் வாழ்த்துக்கள், {n}! {s} சார்பாக அன்பான வாழ்த்துக்கள்.'],
   tAuc: ['Auction', 'ஏலம்'], aucReady: ['Ready for auction', 'ஏலத்திற்கு தயார்'], aucSent: ['Notice sent', 'அறிவிப்பு அனுப்பப்பட்டது'], aucNone: ['Needs notice', 'அறிவிப்பு தேவை'],
@@ -655,6 +658,7 @@ function vHome(D) {
   const BT = (D.bday || []).filter(b => b[4] === 0);
   if (BT.length) h += '<div class="card"><div class="h">🎂 ' + T('bdayT') + ' — ' + T('bdayToday') + '</div>' + BT.map(bdayRow).join('') + '</div>';
   if (D.coll) h += collCard(D);
+  h += walkCard(D);
   const R = D.recent || [];
   if (D.lvl !== 'figures') h += '<div class="card"><div class="h">' + T('counter') + '</div>' + (R.length ? R.map(txRow).join('') : '<div class="m">' + T('nothing') + '</div>') + '</div>';
   const DY = D.days || [];
@@ -753,6 +757,21 @@ function vGold(D) {
 }
 
 // ── Reports ────────────────────────────────────────────────────────────────
+function walkCard(D) {
+  const WK = D.wk; if (!WK) return '';
+  if (!WK.n) return '<div class="card"><div class="h">' + T('wnT') + '</div><div class="m">' + T('wnNone') + (WK.scans ? ' · ' + T('wnScans', { n: WK.scans }) : '') + '</div></div>';
+  let bi = 0; (WK.hr || []).forEach((v, i) => { if (v > (WK.hr[bi] || 0)) bi = i; });
+  const hh = h => (h % 12 || 12) + (h < 12 ? ' am' : ' pm');
+  const max = Math.max(1, ...(WK.hr || []).slice(8, 21));
+  const spark = '<svg viewBox="0 0 260 36" role="img" style="width:100%;height:36px;margin-top:6px">' + (WK.hr || []).slice(8, 21).map((v, i) => '<rect x="' + (i * 20 + 2) + '" y="' + (34 - Math.round(v / max * 30)) + '" width="16" height="' + Math.max(1, Math.round(v / max * 30)) + '" rx="3" fill="' + (i + 8 === bi ? '#0F5F6E' : '#9CC9CF') + '"><title>' + hh(i + 8) + ': ' + v + '</title></rect>').join('') + '</svg>';
+  let h = '<div class="card"><div class="h"><span>' + T('wnT') + '</span><span style="text-transform:none;font-weight:600">' + T('wnScans', { n: WK.scans || 0 }) + '</span></div><div class="grid">'
+    + '<div class="k"><div class="l">' + T('wnCust') + '</div><div class="v">' + WK.cust + '</div><div class="n">' + T('wnRet', { n: WK.ret, m: WK.nw }) + '</div></div>'
+    + '<div class="k"><div class="l">' + T('wnUnk') + '</div><div class="v' + (WK.unk ? ' amber' : '') + '">' + WK.unk + '</div><div class="n">' + T('wnCol') + ' ' + WK.col + '</div></div>'
+    + (WK.bl ? '<div class="k" style="grid-column:1/-1"><div class="l">' + T('wnBl') + '</div><div class="v red">' + WK.bl + '</div></div>' : '')
+    + '</div>' + spark + '<div class="m">' + T('wnBusy', { h: hh(bi) }) + '</div>';
+  if ((WK.last || []).length) h += '<div class="m" style="margin-top:8px;font-weight:700">' + T('wnLast') + '</div>' + WK.last.map(r => '<div class="row"><div>' + esc(r[0]) + (r[1] ? ' · ' + esc(r[1]) : '') + '</div><span class="m">' + esc(T('wnK_' + r[2]) || r[2]) + '</span></div>').join('');
+  return h + '</div>';
+}
 function collCard(D) {
   const C = D.coll; if (!C) return '';
   return '<div class="card"><div class="h"><span>' + T('coll') + '</span><span style="text-transform:none;font-weight:600">' + T('approx') + '</span></div><div class="grid">'
