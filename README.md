@@ -12,7 +12,15 @@
      scroll-reveal pledge cards, animated unlock sequence, reduced-motion safe.
      ALL v9 logic preserved: LZString fragment payload, PIN gate, tiered/compound
      interest parity, 450-day filter, UPI deep links, WhatsApp UTR confirmation. -->
-<title>Customer Passbook</title>
+<title>Sivaji Bank — Pledge Passbook</title>
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Sivaji Bank">
+<meta property="og:title" content="Sivaji Bank — Pledge Passbook">
+<meta property="og:description" content="உங்கள் அடகு, வட்டி, நிலுவை விவரங்கள் · Your pledges, interest and dues">
+<meta property="og:image" content="https://sivajibank.github.io/p/card.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
 <meta name="theme-color" content="#0F4C5C">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -317,7 +325,17 @@
     display:flex;align-items:center;flex-wrap:wrap;gap:2px;font-size:14px;}
 
   .ering{display:flex;align-items:center;gap:var(--s2);}
-  .ering svg{width:34px;height:34px;flex-shrink:0;transform:rotate(-90deg);}
+  .pl-dw{position:relative;flex:1;min-width:0;display:flex}
+  .pl-dw input{flex:1;width:100%}
+  .pl-ph{position:absolute;left:14px;top:50%;transform:translateY(-50%);pointer-events:none;color:var(--ink-4,#7A8A90);font-weight:600}
+  .pl-dw.has .pl-ph{display:none}
+  .pl-dw:not(.has) input::-webkit-datetime-edit{color:transparent}
+  .ering svg{width:44px;height:44px;flex-shrink:0;transform:rotate(-90deg);}
+  .ering-w{position:relative;width:44px;height:44px;flex-shrink:0;display:inline-grid;place-items:center}
+  .ering-w svg{position:absolute;inset:0}
+  .ering-w b{position:relative;font-size:12.5px;font-weight:800;color:var(--peacock-l);line-height:1}
+  .ering-w b.hot{color:var(--kumkum)}
+  .ering-w b i{font-style:normal;font-size:9px;font-weight:700;margin-left:1px}
   .ering circle{fill:none;stroke-width:3.6;}
   .ering .bgc{stroke:var(--t-peacock);}
   .ering .fgc{stroke:var(--peacock-l);stroke-linecap:round;stroke-dasharray:var(--ring-c);
@@ -1000,7 +1018,43 @@ window.addEventListener('message', function (ev) {
     unlock();
   } catch (e) {}
 });
-(function boot(){
+
+// v18 · short link  #S1.<code>.<b64u worker url>  — fetch the PIN-sealed copy kept under the code,
+// put it where the long link would have it, and start exactly as a long link does.
+function __pbShort(boot) {
+  var f = location.hash.replace(/^#/, '');
+  if (f.indexOf('S1.') !== 0) return false;
+  var p = f.split('.'), code = (p[1] || '').replace(/[^0-9A-Z]/g, ''), url = '';
+  try { url = new TextDecoder().decode(b64uDec(p[2] || '')); } catch (e) {}
+  var gate = document.getElementById('gate');
+  var tl = (typeof LANG !== 'undefined' && LANG === 'ta');
+  var box = document.createElement('div'); box.id = 'pb-short';
+  box.style.cssText = 'margin:28px auto;max-width:420px;padding:28px 22px;border-radius:22px;background:#fff;text-align:center;box-shadow:0 18px 40px -22px rgba(10,51,64,.45);font-size:15px;line-height:1.55;color:#14323A';
+  function msg(h) { box.innerHTML = h; }
+  msg('<div style="width:38px;height:38px;border:3px solid rgba(15,76,92,.18);border-top-color:#0F4C5C;border-radius:50%;margin:0 auto 14px;animation:pbsr 1s linear infinite"></div><style>@keyframes pbsr{to{transform:rotate(360deg)}}</style>'
+    + (tl ? 'உங்கள் பாஸ்புக் திறக்கிறது…' : 'Opening your passbook…'));
+  if (gate) { gate.style.display = 'none'; gate.parentNode.insertBefore(box, gate); }
+  var fail = function (gone) {
+    msg('<div style="font-size:34px;margin-bottom:8px">' + (gone ? '📭' : '📶') + '</div><b>' + (gone ? (tl ? 'இந்த இணைப்பு இனி செயல்படாது' : 'This link no longer works') : (tl ? 'உங்கள் பாஸ்புக்கை இப்போது ஏற்ற முடியவில்லை' : 'Couldn’t load your passbook')) + '</b><br>'
+      + (gone ? (tl ? 'கடையில் புதிய இணைப்பை அனுப்பச் சொல்லவும்.' : 'Please ask the shop to send a new link.') : (tl ? 'இணைய இணைப்பைச் சரிபார்த்து மீண்டும் முயற்சிக்கவும்.' : 'Check your internet and try again in a few minutes.'))
+      + (gone ? '' : '<br><button onclick="location.reload()" style="margin-top:14px;padding:11px 22px;border:0;border-radius:12px;background:#0F4C5C;color:#fff;font-weight:700;font-size:15px">' + (tl ? 'மீண்டும் முயற்சி' : 'Try again') + '</button>'));
+  };
+  if (!code || !/^https:\/\//.test(url) && !/^http:\/\/(localhost|127\.)/.test(url)) { fail(true); return true; }
+  fetch(url.replace(/\/+$/, '') + '/p/S' + code, { cache: 'no-store' }).then(function (r) {
+    if (r.status === 404) { fail(true); return null; }
+    if (!r.ok) throw 0;
+    return r.text();
+  }).then(function (t) {
+    if (t == null) return;
+    t = String(t).trim();
+    if (t.indexOf('E1.') !== 0 || t.split('.').length !== 6) { fail(true); return; }
+    try { history.replaceState(null, '', location.pathname + location.search + '#' + t); } catch (e) { location.replace(location.pathname + location.search + '#' + t); return; }
+    box.remove(); if (gate) gate.style.display = '';
+    boot();
+  }).catch(function () { fail(false); });
+  return true;
+}
+function boot(){
   try {
     let frag = location.hash.replace(/^#/, '');
     if (frag.indexOf('E1.') === 0) {
@@ -1045,7 +1099,8 @@ window.addEventListener('message', function (ev) {
   else document.addEventListener('DOMContentLoaded', buildPinUI);
   setLang(LANG);
   setTimeout(()=>document.getElementById('pin').focus(), 300);
-})();
+}
+if (!__pbShort(boot)) boot();
 
 // ── Liquid-glass PIN input driver ────────────────────────────────────────────
 // The visible cells are cosmetic; the real value lives in the hidden #pin input,
@@ -1431,10 +1486,10 @@ function renderBook() {
         <div><div class="k">${T('lastpay')}</div><div class="v">${fmtD(it.lp)}</div></div>
         <div><div class="k">${T('elapsed')}</div>
           <div class="v ering">
-            ${totalSpan ? `<svg viewBox="0 0 34 34" style="--ring-c:${C.toFixed(1)};--ring-off:${off.toFixed(1)};">
+            ${totalSpan ? `<span class="ering-w"><svg viewBox="0 0 34 34" style="--ring-c:${C.toFixed(1)};--ring-off:${off.toFixed(1)};">
               <circle class="bgc" cx="17" cy="17" r="14"></circle>
               <circle class="fgc${pct>=1?' hot':''}" cx="17" cy="17" r="14"></circle>
-            </svg>` : ''}
+            </svg><b class="${pct>=1?'hot':''}">${spent >= 60 ? Math.floor(spent / 30.44) + '<i>' + (LANG === 'ta' ? 'மா' : 'm') + '</i>' : spent + '<i>' + (LANG === 'ta' ? 'நா' : 'd') + '</i>'}</b></span>` : ''}
             <span class="etxt" style="color:#1A4A8C;">⏱ ${fmtElapsed(it.d, asOf)}<br><span style="font-size:9.5px;color:#8A7350;font-weight:700;">= ${daysBetween(it.d, asOf)} ${T('etot')}</span></span>
           </div></div>
         <div><div class="k">${T('outp')}</div><div class="v">${fmtR(it.pr)}</div></div>
@@ -1465,7 +1520,7 @@ function renderBook() {
       <div class="planner">
         <div class="pl-h">📅 ${T('planTitle')}</div>
         <div class="pl-r">
-          <input type="date" id="plan-d-${i}" min="${asOf}" onchange="_pbPlanDate(${i})" aria-label="${T('planPick')}">
+          <label class="pl-dw"><input type="date" id="plan-d-${i}" min="${asOf}" onchange="this.parentNode.classList.toggle('has',!!this.value);_pbPlanDate(${i})" aria-label="${T('planPick')}"><span class="pl-ph">📅 ${LANG === 'ta' ? 'தேதியைத் தேர்வு செய்க' : 'Choose a date'}</span></label>
           <button class="pl-rem" onclick="_pbRemind(${i})">🔔 ${T('remind')}</button>
         </div>
         <div class="pl-o" id="plan-o-${i}"></div>
